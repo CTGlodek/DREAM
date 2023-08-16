@@ -163,7 +163,7 @@ class Sensor:
     
     def update_energy(self):
         """
-        Updates the energy used
+        Updates the energy used based on the sensors mode
 
         Variables:
             None
