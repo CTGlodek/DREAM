@@ -23,8 +23,5 @@ env_test.run_env(target_1, sensor_1)
 
 env_test.env_stats()
 
-print('Testing')
-# testing git with a branh
-
 
 
