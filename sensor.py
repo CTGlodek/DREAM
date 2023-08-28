@@ -69,7 +69,8 @@ class Sensor:
                 if distance_to_target <= self.coverage_range:
                     #pygame.draw.line(screen, (0, 0, 0), (self.position.x, self.postion.y), target, 2)
                     pygame.draw.line(screen, (0, 0, 0), self.position, target.position, 2)
-            self.position.angle_to()
+                #self.position.angle_to(target.position) # Line not needed
+
         # Check if the sensor is in idle mode and draw the entire disk in dark gray
         if self.mode == 'idle':
             surface = pygame.Surface((screen.get_width(), screen.get_height()), pygame.SRCALPHA)
