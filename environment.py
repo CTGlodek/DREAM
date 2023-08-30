@@ -76,21 +76,23 @@ class Environment:
         list_o_targets = []
         
         for i in range(num_targets):
-            temp_dir = random.choice(list_o_directions)
 
-            #temp =((random.randint(0,(i*2)+1)*25 + 500), random.randint(-250,0),i+1)
+            starting_offset = i * 25 # provide an offset for each target. Ensures they are not bunched together
+            lane_offset = 25
+
+            temp_dir = random.choice(list_o_directions) # pick a random starting point
             
             if temp_dir == 'right':    
-                temp = (right[0], right[1], temp_dir, i+1)
+                temp = (right[0] - starting_offset, right[1] + lane_offset, temp_dir, i+1)
 
             if temp_dir == 'left':
-                temp = (left[0], left[1], temp_dir, i+1)
+                temp = (left[0] + starting_offset, left[1] - lane_offset, temp_dir, i+1)
             
             if temp_dir == 'up':
-                temp = (up[0],up[1], temp_dir, i+1)
+                temp = (up[0] + lane_offset,up[1] + starting_offset, temp_dir, i+1)
             
             if temp_dir == 'down':
-                temp = (down[0], down[1], temp_dir, i+1)
+                temp = (down[0] - lane_offset, down[1] - starting_offset, temp_dir, i+1)
 
             list_o_targets.append(temp)
 
@@ -142,19 +144,14 @@ class Environment:
             covered_targets = []
             current_energy = 0 # initialize available energy for this moment
 
-            #for target, sensor in zip(targets, sensors):
-             #   target.move()
-              #  sensor.update_sensor_fov(targets)
-               # if len(sensor.detected) > 0: 
-                #    for var in sensor.detected:
-                 #       covered_targets.append(var.id)
-                #target.draw_target(self.screen)
-                #sensor.draw_sensors(self.screen)
+            pygame.draw.rect(self.screen, (0,   0, 255), [0, 0, 550, 350], 0)  # top left
+            pygame.draw.rect(self.screen, (0,   0, 255), [650, 0, 550, 350], 0) # top right
+            pygame.draw.rect(self.screen, (0,   0, 255), [0, 450, 550, 350], 0) # bottom left
+            pygame.draw.rect(self.screen, (0,   0, 255), [650, 450, 550, 350], 0) # bottom right
+
             for target in targets:
                 target.move()
-                target.draw_target(self.screen)
-
-                
+                target.draw_target(self.screen)  
 
             for sensor in sensors:
                 sensor.update_sensor_fov(targets)
