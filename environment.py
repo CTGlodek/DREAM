@@ -44,7 +44,7 @@ class Environment:
 
         for target in target_info: 
             #print('target Starting postion: ', target)
-            targets.append(Target(target[0], target[1],id=target[2]))
+            targets.append(Target(target[0], target[1], target[2], id=target[3]))
 
         for sensor in sensor_info:
             temp_sensor = Sensor(sensor[0],sensor[1],fov=sensor[2])
@@ -67,11 +67,31 @@ class Environment:
             list_o_targets (list): the x coordinate, y coordinate, and id number
 
         """
+        list_o_directions = ['right', 'left', 'down', 'up']
+        right = (0, self.screen.get_height()/2)
+        left = (self.screen.get_width(), self.screen.get_height()/2)
+        up = (self.screen.get_width()/2, self.screen.get_height())
+        down = (self.screen.get_width()/2, 0)
 
         list_o_targets = []
-
+        
         for i in range(num_targets):
-            temp =((random.randint(0,(i*2)+1)*25 + 500), random.randint(-250,0),i+1)
+            temp_dir = random.choice(list_o_directions)
+
+            #temp =((random.randint(0,(i*2)+1)*25 + 500), random.randint(-250,0),i+1)
+            
+            if temp_dir == 'right':    
+                temp = (right[0], right[1], temp_dir, i+1)
+
+            if temp_dir == 'left':
+                temp = (left[0], left[1], temp_dir, i+1)
+            
+            if temp_dir == 'up':
+                temp = (up[0],up[1], temp_dir, i+1)
+            
+            if temp_dir == 'down':
+                temp = (down[0], down[1], temp_dir, i+1)
+
             list_o_targets.append(temp)
 
         return list_o_targets

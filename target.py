@@ -9,12 +9,14 @@ class Target:
     def __init__(self,
                  x,
                  y,
+                 direction,
                  speed = 1,
                  id = None,
                  size=8):
         
         self.id = id       # unique id for the target 
         self.position = pygame.Vector2(x,y)     # pygame vector object
+        self.direction = direction
         self.speed = speed  # rate of travel to be used for movement
         self.size = size    # Determines how large the target will be drawn
         self.angle = 0      # the angle of movment of the target
@@ -53,13 +55,23 @@ class Target:
 
         """
         
-        # if no method is selected the target will move from top to bottom at a consitent rate
+        # if no method is selected the target will move in its direction at a constant rate
         if method == None:
 
             x1 = self.position.x
             y1 = self.position.y # before move
 
-            self.position.y += self.speed # just a horizontal movement for initial testing
+            if self.direction == 'right':
+                self.position.x += self.speed
+            
+            if self.direction == 'left':
+                self.position.x -= self.speed
+
+            if self.direction == 'down':
+                self.position.y += self.speed # just a horizontal movement for initial testing
+
+            if self.direction == 'up':
+                self.position.y -= self.speed # just a horizontal movement for initial testing
 
             x2 = self.position.x
             y2 = self.position.y  # after move
