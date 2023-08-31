@@ -19,28 +19,48 @@ class Environment:
         self.tracked = []
         self.energy = []
         self.energy_total = 0
+        self.building_width = 0
+        self.building_height = 0
+        self.lane_width = 100
 
     def test():
         print('test')
 
     def create_env(self, 
-                   target_info, 
-                   sensor_info):
+                   num_o_targets, 
+                   sensor_info,
+                   vert_lane_num,
+                   hor_lane_num):
 
         """
         Creates the target and sensor objects
+        Creates the buildings and lanes to be drawn based on the number of vertical and horizontal lanes specified.
         
         Variables:
-        target_info (list): a list of parameters needed to generate the individual targets objects
+        num_o_targets (int): the number of targets to be generated
         sensor_info (list): a list of parameters needed to generate the individual sensors objects
+        vert_lane_num (int): the number of vertical lanes
+        hor_lane_num (int): the number of horizontal lanes
 
         returns:
         targets (list): a list of target objects
         sensors (list): a list of sensor objects
+        buildings (list): a list of all the buildings
 
         """
         targets = []
         sensors = []
+        buildings = []
+
+        self.building_width = (self.screen.get_width() - (vert_lane_num * self.lane_width)) / (vert_lane_num+1)
+        self.building_height = (self.screen.get_height() - (hor_lane_num * self.lane_width)) / (hor_lane_num + 1)
+
+        target_info = self.generate_target_list(num_o_targets, vert_lane_num, hor_lane_num)
+
+        for i in range(vert_lane_num+1):
+            for j in range(hor_lane_num+1):
+                temp = [i*(self.building_width+self.lane_width), j*(self.building_height+self.lane_width), self.building_width, self.building_height]
+                buildings.append(temp)
 
         for target in target_info: 
             #print('target Starting postion: ', target)
@@ -53,25 +73,33 @@ class Environment:
 
         print('Total inital sensor energy level: ', self.energy_total)
 
-        return targets, sensors
+        return targets, sensors, buildings
 
-    def generate_target_list(self, num_targets):
+    def generate_target_list(self, num_targets, vert_num, hor_num):
         """
         Creates a batch of information used to create targets in a semi random 
         distro near the middle of the board width. Currently used for testing
 
         Variables:
-            num_targets (int): how many target are to be created
+            num_targets (int):   how many target are to be created
+            vert_num (int):      the number of vertical lanes
+            hor_num (int):       the number of horizaontal lanes
         
         Returns:
             list_o_targets (list): the x coordinate, y coordinate, and id number
 
         """
         list_o_directions = ['right', 'left', 'down', 'up']
-        right = (0, self.screen.get_height()/2)
-        left = (self.screen.get_width(), self.screen.get_height()/2)
-        up = (self.screen.get_width()/2, self.screen.get_height())
-        down = (self.screen.get_width()/2, 0)
+
+        hor_start = []
+        vert_start = []
+
+        for i in range(vert_num+1):
+            hor_temp = i*(self.building_height + self.lane_width) + self.building_height + self.lane_width/2
+            hor_start.append(hor_temp)
+        for i in range(hor_num+1):
+            vert_temp = i*(self.building_width + self.lane_width) + self.building_width + self.lane_width/2
+            vert_start.append(vert_temp)
 
         list_o_targets = []
         
@@ -83,16 +111,16 @@ class Environment:
             temp_dir = random.choice(list_o_directions) # pick a random starting point
             
             if temp_dir == 'right':    
-                temp = (right[0] - starting_offset, right[1] + lane_offset, temp_dir, i+1)
+                temp = (0 - starting_offset, random.choice(hor_start) + lane_offset, temp_dir, i+1)
 
             if temp_dir == 'left':
-                temp = (left[0] + starting_offset, left[1] - lane_offset, temp_dir, i+1)
+                temp = (self.screen.get_width() + starting_offset, random.choice(hor_start) - lane_offset, temp_dir, i+1)
             
             if temp_dir == 'up':
-                temp = (up[0] + lane_offset,up[1] + starting_offset, temp_dir, i+1)
+                temp = (random.choice(vert_start) + lane_offset, self.screen.get_height()+ starting_offset, temp_dir, i+1)
             
             if temp_dir == 'down':
-                temp = (down[0] - lane_offset, down[1] - starting_offset, temp_dir, i+1)
+                temp = (random.choice(vert_start) - lane_offset, 0 - starting_offset, temp_dir, i+1)
 
             list_o_targets.append(temp)
 
@@ -124,12 +152,14 @@ class Environment:
         return track_temp, energy_temp
     
 
-    def run_env(self, targets, sensors):
+    def run_env(self, targets, sensors, buildings):
         
         # pygame setup
         pygame.init()
         self.running = True
         self.clock = pygame.time.Clock()
+
+        #buildings = self.create_lanes(2,2)
 
         while self.running:
                 # poll for events
@@ -144,10 +174,9 @@ class Environment:
             covered_targets = []
             current_energy = 0 # initialize available energy for this moment
 
-            pygame.draw.rect(self.screen, (0,   0, 255), [0, 0, 550, 350], 0)  # top left
-            pygame.draw.rect(self.screen, (0,   0, 255), [650, 0, 550, 350], 0) # top right
-            pygame.draw.rect(self.screen, (0,   0, 255), [0, 450, 550, 350], 0) # bottom left
-            pygame.draw.rect(self.screen, (0,   0, 255), [650, 450, 550, 350], 0) # bottom right
+            # basic 'buildings' - helps to see the lanes
+            for building in buildings:
+                pygame.draw.rect(self.screen, (0,0,255), building, 0)
 
             for target in targets:
                 target.move()
