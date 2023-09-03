@@ -1,5 +1,6 @@
 import pygame
 import math
+import numpy as np
 
 # sensor.py 
 # version 0.2 : initial development
@@ -13,7 +14,7 @@ class Sensor:
                  coverage_range=100,
                  comm_range=100,
                  fov=90,
-                 energy=1000,
+                 energy=10000,
                  speed = 2, # not used currently
                  mode='idle'):
 
@@ -23,11 +24,12 @@ class Sensor:
         self.comm_range = comm_range            # how far the sensor can communicate with other sensors
         self.fov = fov                          # how large is the field of view - default of 90
         self.energy = energy                    # amount of energy remaining
-        self.energy_start = 1000                # initial amount of energy
+        self.energy_start = energy              # initial amount of energy
         self.speed = speed                      # speed 
         self.mode = mode                        # the mode of the sensor: idle, active, wake_up, and sleep
         self.angle = 270                        # angle between sensor and the target being tracked actively # 270 used for initialization
         self.detected = []                      # targets that are currently detected
+        self.region_map = np.zeros((self.coverage_range, self.coverage_range)) # initialize the region map
 
         # Function to draw each sensor as a disk with lines representing the active FOV
     def draw_sensors(self, screen):
@@ -137,30 +139,39 @@ class Sensor:
         # Clear the detected_targets list for the current sensor
         self.detected = []
 
-        # Loop through all targets and check if they are within the coverage distance of the sensor and within FOV
-        for target in targets:
+        if not self.mode == 'sleep':
+            
+            self.region_map = np.zeros((self.coverage_range, self.coverage_range)) # reset the region map
+            
+            # Loop through all targets and check if they are within the coverage distance of the sensor and within FOV
+            for target in targets:
 
-            distance_to_target = self.position.distance_to(target.position)
-            #print('distance to: ', distance_to_target )
+                distance_to_target = self.position.distance_to(target.position)
+                #print('distance to: ', distance_to_target )
 
-            # Check if the target is within the sensor's 90-degree FOV
-            if distance_to_target <= self.coverage_range:
-                angle_to_target = math.degrees(math.atan2(target.position.y - self.position.y, target.position.x - self.position.x)) % 360
+                # Check if the target is within the sensor's 90-degree FOV
+                if distance_to_target <= self.coverage_range:
+                    angle_to_target = math.degrees(math.atan2(target.position.y - self.position.y, target.position.x - self.position.x)) % 360
 
-                # Calculate the angle difference between the sensor and the target
-                angle_diff = (angle_to_target - self.angle + 360) % 360
+                    # Calculate the angle difference between the sensor and the target
+                    angle_diff = (angle_to_target - self.angle + 360) % 360
 
-                # Check if the target is within the sensor's FOV
-                if angle_diff <= self.fov/2 or angle_diff >= (360-self.fov/2): 
-                    self.detected.append(target)  # Convert to a tuple
-                    self.mode = 'active'
-                    #print('active')
-                    #break  # use if single target tracking is wanted, else it will track multiple targets
+                    # Check if the target is within the sensor's FOV
+                    if angle_diff <= self.fov/2 or angle_diff >= (360-self.fov/2): 
+                        self.detected.append(target)  # Convert to a tuple
+                        location_temp = target.position - self.position # identify its location
+                        print('the location of target with regard to the sensor is: ', location_temp)
+                        print(type(location_temp))
+                        self.region_map[int(location_temp.x), int(location_temp.y)] = 1
+                        self.mode = 'active'
+                        #print('active')
+                        #break  # use if single target tracking is wanted, else it will track multiple targets
 
-        if len(self.detected) == 0:
-            # Mark the sensor as inactive and clear the detected_targets list
-            self.mode = 'idle'
-            self.detected = []
+            if len(self.detected) == 0:
+                # Mark the sensor as inactive and clear the detected_targets list
+                self.mode = 'idle'
+                self.detected = []
+        return self.region_map
     
     def update_energy(self):
         """

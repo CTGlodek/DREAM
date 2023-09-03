@@ -15,10 +15,10 @@ env_test = Environment((1200, 800))
 sensor_list = [(650,450, 90), (550,450, 90), (550,350, 90), (650,350, 90)]
 
 # create the environment
-target_1, sensor_1, buildings =env_test.create_env(50, # number of targets 
+target_1, sensor_1, buildings =env_test.create_env(0, # number of targets 
                                                    sensor_list, # list of sensor positions
-                                                   3, # number of vertical lanes
-                                                   3) # number of horizontal lanes
+                                                   1, # number of vertical lanes
+                                                   1) # number of horizontal lanes
 
 # run the simulation
 env_test.run_env(target_1, sensor_1, buildings)
