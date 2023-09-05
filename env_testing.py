@@ -5,7 +5,7 @@ from sensor import *
 from target import *
 
 # env_testing.py 
-# version 0.1 : initial development 
+# version 0.2 : initial development 
 
 env_test = Environment((1200, 800))
 

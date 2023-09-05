@@ -69,9 +69,7 @@ class Sensor:
             for target in self.detected:
                 distance_to_target = self.position.distance_to(target.position)
                 if distance_to_target <= self.coverage_range:
-                    #pygame.draw.line(screen, (0, 0, 0), (self.position.x, self.postion.y), target, 2)
                     pygame.draw.line(screen, (0, 0, 0), self.position, target.position, 2)
-                #self.position.angle_to(target.position) # Line not needed
 
         # Check if the sensor is in idle mode and draw the entire disk in dark gray
         if self.mode == 'idle':
@@ -133,6 +131,7 @@ class Sensor:
             if len(self.detected) > 0: 
                 self.angle = math.degrees(math.atan2(self.detected[0].position.y - self.position.y, self.detected[0].position.x - self.position.x)) % 360 
 
+        # updates the fov angle based on the user define value
         if method == 'directed':
             self.angle = angle_update
 
@@ -141,7 +140,8 @@ class Sensor:
 
         if not self.mode == 'sleep':
             
-            self.region_map = np.zeros((self.coverage_range, self.coverage_range)) # reset the region map
+            # resets the region map 2d array to zeros
+            self.region_map = np.zeros((self.coverage_range, self.coverage_range)) 
             
             # Loop through all targets and check if they are within the coverage distance of the sensor and within FOV
             for target in targets:
@@ -160,17 +160,18 @@ class Sensor:
                     if angle_diff <= self.fov/2 or angle_diff >= (360-self.fov/2): 
                         self.detected.append(target)  # Convert to a tuple
                         location_temp = target.position - self.position # identify its location
-                        print('the location of target with regard to the sensor is: ', location_temp)
-                        print(type(location_temp))
+
+                        # update the region map with the targets location only if it is in the FOV
                         self.region_map[int(location_temp.x), int(location_temp.y)] = 1
                         self.mode = 'active'
-                        #print('active')
+
                         #break  # use if single target tracking is wanted, else it will track multiple targets
 
             if len(self.detected) == 0:
                 # Mark the sensor as inactive and clear the detected_targets list
                 self.mode = 'idle'
                 self.detected = []
+        # return the region map for use in a learning model
         return self.region_map
     
     def update_energy(self):

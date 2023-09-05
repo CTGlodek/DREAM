@@ -12,20 +12,17 @@ from target import *
 class Environment:
     def __init__(self,
                  screen_size):
-        self.screen_size= screen_size
-        self.running = False
-        self.clock = pygame.time.Clock()
-        self.screen = pygame.display.set_mode((self.screen_size))
-        self.tracked = []
-        self.energy = []
-        self.energy_total = 0
-        self.building_width = 0
-        self.building_height = 0
-        self.lane_width = 100
-        self.target_count = 0
-
-    def test():
-        print('test')
+        self.screen_size= screen_size       # establish the screen size
+        self.running = False                # running flag
+        self.clock = pygame.time.Clock()    # initalize a pygame clock object
+        self.screen = pygame.display.set_mode((self.screen_size))   # initialize the screen object
+        self.tracked = []                   # a list of lists of the targets that have been tracked by time step
+        self.energy = []                    # a list of available energy per time step
+        self.energy_total = 0               # initial starting energy
+        self.building_width = 0             # building width
+        self.building_height = 0            # building hieght
+        self.lane_width = 100               # lane width
+        self.target_count = 0               # tracks the total number of targets generated
 
     def create_env(self, 
                    num_o_targets, 
@@ -52,8 +49,6 @@ class Environment:
         self.vert_lanes = vert_lane_num
         self.hort_lanes = hor_lane_num
 
-        #print('the number of vertical lanes is: ', self.vert_lanes)
-
         targets = []
         sensors = []
         buildings = []
@@ -63,15 +58,18 @@ class Environment:
 
         target_info = self.generate_target_list(num_o_targets)
 
+        # establish locations for all building based on number of lanes and buidling dimensions
         for i in range(self.vert_lanes+1):
             for j in range(self.hort_lanes+1):
                 temp = [i*(self.building_width+self.lane_width), j*(self.building_height+self.lane_width), self.building_width, self.building_height]
                 buildings.append(temp)
 
+        # generate targets if provided in a list format
+        # can be used for specific testing
         for target in target_info: 
-            #print('target Starting postion: ', target)
             targets.append(Target(target[0], target[1], target[2], id=target[3]))
 
+        # Generate sensors based on user defined list
         for sensor in sensor_info:
             temp_sensor = Sensor(sensor[0],sensor[1],fov=sensor[2])
             sensors.append(temp_sensor)
@@ -88,8 +86,6 @@ class Environment:
 
         Variables:
             num_targets (int):   how many target are to be created
-            vert_num (int):      the number of vertical lanes
-            hor_num (int):       the number of horizaontal lanes
         
         Returns:
             list_o_targets (list): the x coordinate, y coordinate, and id number
@@ -97,9 +93,11 @@ class Environment:
         """
         list_o_directions = ['right', 'left', 'down', 'up']
 
+        # lists of the potential starting target locations
         hor_start = []
         vert_start = []
 
+        # generate a list of possible starting positions for the targets based on the number of lanes and building locations.
         for i in range(self.vert_lanes+1):
             hor_temp = i*(self.building_height + self.lane_width) + self.building_height + self.lane_width/2
             hor_start.append(hor_temp)
@@ -138,9 +136,11 @@ class Environment:
 
         list_o_directions = ['right', 'left', 'down', 'up']
 
+        # lists of the potential starting target locations
         hor_start = []
         vert_start = []
 
+        # generate a list of possible starting positions for the targets based on the number of lanes and building locations.
         for i in range(self.vert_lanes+1):
             hor_temp = i*(self.building_height + self.lane_width) + self.building_height + self.lane_width/2
             hor_start.append(hor_temp)
@@ -169,6 +169,17 @@ class Environment:
 
     def env_stats(self, plot=False):
 
+        """
+        Provides the an ndarry of the targets that were tracked and available energy per time step. There is an option for plotting these data. 
+
+        Variables:
+            plot (boolean): the flag for ploting the data
+        
+        Returns:
+            track_temp (ndarray): the number of targets tracked per time step
+            energy_temp (list): a list of the energy available per time step
+        
+        """
         # equalize the array sizes for processing
         track_temp = np.zeros([len(self.tracked),len(max(self.tracked,key = lambda x: len(x)))])
         energy_temp = self.energy
@@ -194,27 +205,42 @@ class Environment:
 
     def run_env(self, targets, sensors, buildings):
         
+        """
+        The main function for running the simulation.
+
+         Variables:
+            targets (list): a list of target objects
+            sensors (list): a list of sensor objects
+            buildings(list): a list of buildings - specifically the location for each to be drawn
+        
+        Returns:
+            region_map (2d numpy array): returns the last region map for the last sensor to allow for testing - this will be removed later
+        """
+
         # pygame setup
         pygame.init()
         self.running = True
         self.clock = pygame.time.Clock()
         global_time = 0
 
+        # custom event to generate targets every 25 seconds (or 250 msec)
         TARGET = pygame.USEREVENT + 1
 
         pygame.time.set_timer(TARGET, 250)
-        #buildings = self.create_lanes(2,2)
 
         while self.running:
                 # poll for events
-            # pygame.QUIT event means the user clicked X to close your window
+            
             for event in pygame.event.get():
+                # pygame.QUIT event means the user clicked X to close your window
                 if event.type == pygame.QUIT:
                     self.running = False
 
+                # event to generate one target every 25s
                 if event.type == TARGET:
                     new_target = self.gen_target()
                     targets.append(Target(new_target[0], new_target[1], new_target[2], id=new_target[3]))
+
             # fill the screen with a color to wipe away anything from last frame
             self.screen.fill("purple")
 
@@ -238,7 +264,7 @@ class Environment:
                 if len(sensor.detected) > 0: 
                     for var in sensor.detected:
                         covered_targets.append(var.id)
-                        
+
                 sensor.draw_sensors(self.screen)
                     
             # appends all the targets, by id, (if any) that were tracked in this round
