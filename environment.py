@@ -98,10 +98,10 @@ class Environment:
         vert_start = []
 
         # generate a list of possible starting positions for the targets based on the number of lanes and building locations.
-        for i in range(self.vert_lanes+1):
+        for i in range(self.vert_lanes):
             hor_temp = i*(self.building_height + self.lane_width) + self.building_height + self.lane_width/2
             hor_start.append(hor_temp)
-        for i in range(self.hort_lanes+1):
+        for i in range(self.hort_lanes):
             vert_temp = i*(self.building_width + self.lane_width) + self.building_width + self.lane_width/2
             vert_start.append(vert_temp)
 
@@ -125,7 +125,9 @@ class Environment:
             
             if temp_dir == 'down':
                 temp = (random.choice(vert_start) - lane_offset, 0 - starting_offset, temp_dir, i+1)
-
+            
+            print(temp)
+            
             list_o_targets.append(temp)
 
         return list_o_targets
@@ -141,13 +143,16 @@ class Environment:
         vert_start = []
 
         # generate a list of possible starting positions for the targets based on the number of lanes and building locations.
-        for i in range(self.vert_lanes+1):
+        for i in range(self.vert_lanes):
             hor_temp = i*(self.building_height + self.lane_width) + self.building_height + self.lane_width/2
             hor_start.append(hor_temp)
 
-        for i in range(self.hort_lanes+1):
+        for i in range(self.hort_lanes):
             vert_temp = i*(self.building_width + self.lane_width) + self.building_width + self.lane_width/2
             vert_start.append(vert_temp)
+        
+        #print('hor start: ', hor_start)
+        #print('vert start: ', vert_start)
 
         lane_offset = 25
 
@@ -166,6 +171,25 @@ class Environment:
             target = (random.choice(vert_start) - lane_offset, 0, temp_dir, self.target_count )
 
         return target
+    
+    def delete_target(self, target, targets):
+        """
+        Removes a target object form teh tragets list if it is beyond ht ebounds of the screen
+
+        Variables:
+        target (object):    the target object being evaluated
+        targets (list):     the list of targets
+
+        returns:
+        targets (list):     the list of targets
+
+        """
+        if target.position.x > (self.screen.get_width() + 50) or target.position.x < -25 or target.position.y > (self.screen.get_height()+50) or target.position.y < -25: 
+            print(target.position.x)
+            print(target.position.y)
+            targets.remove(target)
+        
+        return targets
 
     def env_stats(self, plot=False):
 
@@ -190,7 +214,7 @@ class Environment:
         # show the number of targets tracked and their IDs
         print('The unique targets tracked: ',np.unique(track_temp)[1:]) # excludes the zero used for padding the arrays.
         print('The number of unique targets tracked: ', len(np.unique(track_temp))-1) # -1 so we dont count the zero
-
+        print('The total number of targets generated: ', self.target_count)
         if plot:
 
             fig, (ax1, ax2) = plt.subplots(1,2, figsize=(10,5))
@@ -254,6 +278,7 @@ class Environment:
             for target in targets:
                 target.move()
                 target.draw_target(self.screen)  
+                self.delete_target(target, targets)
 
             for sensor in sensors:
                 region_map = sensor.update_sensor_fov(targets)
@@ -286,7 +311,7 @@ class Environment:
                 print('The game time is: ', global_time)
         pygame.quit()
 
-        return region_map
+        return region_map, targets
 
     
     
