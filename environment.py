@@ -23,6 +23,7 @@ class Environment:
         self.building_height = 0            # building hieght
         self.lane_width = 100               # lane width
         self.target_count = 0               # tracks the total number of targets generated
+        self.auto_gen = False               # boolean flag for automatic target generation
 
     def create_env(self, 
                    num_o_targets, 
@@ -56,18 +57,25 @@ class Environment:
         self.building_width = (self.screen.get_width() - (self.vert_lanes * self.lane_width)) / (self.vert_lanes+1)
         self.building_height = (self.screen.get_height() - (self.hort_lanes * self.lane_width)) / (self.hort_lanes + 1)
 
-        target_info = self.generate_target_list(num_o_targets)
+        
 
         # establish locations for all building based on number of lanes and buidling dimensions
         for i in range(self.vert_lanes+1):
             for j in range(self.hort_lanes+1):
                 temp = [i*(self.building_width+self.lane_width), j*(self.building_height+self.lane_width), self.building_width, self.building_height]
                 buildings.append(temp)
+        
+        if num_o_targets > 0:
 
-        # generate targets if provided in a list format
-        # can be used for specific testing
-        for target in target_info: 
-            targets.append(Target(target[0], target[1], target[2], id=target[3]))
+            target_info = self.generate_target_list(num_o_targets)
+            
+            # generate targets if provided in a list format
+            # can be used for specific testing
+            for target in target_info: 
+                targets.append(Target(target[0], target[1], target[2], id=target[3]))
+                self.target_count += 1
+        else:
+            self.auto_gen = True
 
         # Generate sensors based on user defined list
         for sensor in sensor_info:
@@ -185,8 +193,8 @@ class Environment:
 
         """
         if target.position.x > (self.screen.get_width() + 50) or target.position.x < -25 or target.position.y > (self.screen.get_height()+50) or target.position.y < -25: 
-            print(target.position.x)
-            print(target.position.y)
+            #print(target.position.x)
+            #print(target.position.y)
             targets.remove(target)
         
         return targets
@@ -249,8 +257,9 @@ class Environment:
 
         # custom event to generate targets every 25 seconds (or 250 msec)
         TARGET = pygame.USEREVENT + 1
-
-        pygame.time.set_timer(TARGET, 250)
+        
+        if self.auto_gen:
+            pygame.time.set_timer(TARGET, 250)
 
         while self.running:
                 # poll for events
@@ -310,7 +319,7 @@ class Environment:
             if global_time % 1 == 0:
                 print('The game time is: ', global_time)
         pygame.quit()
-
+        print('Total number of active targets: ', len(targets))
         return region_map, targets
 
     
