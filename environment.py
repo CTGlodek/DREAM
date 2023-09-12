@@ -67,13 +67,13 @@ class Environment:
         
         if num_o_targets > 0:
 
-            target_info = self.generate_target_list(num_o_targets)
+            #target_info = self.generate_target_list(num_o_targets)
             
             # generate targets if provided in a list format
             # can be used for specific testing
-            for target in target_info: 
-                targets.append(Target(target[0], target[1], target[2], id=target[3]))
-                self.target_count += 1
+            for i in range(num_o_targets):
+                targets.append(self.gen_target())
+                #self.target_count += 1
         else:
             self.auto_gen = True
 
@@ -87,61 +87,17 @@ class Environment:
 
         return targets, sensors, buildings
 
-    def generate_target_list(self, num_targets):
+    def gen_target(self):
         """
-        Creates a batch of information used to create targets in a semi random 
-        distro near the middle of the board width. Currently used for testing
+        Creates a single target object
 
         Variables:
-            num_targets (int):   how many target are to be created
+            none
         
         Returns:
-            list_o_targets (list): the x coordinate, y coordinate, and id number
+            target (object)
 
         """
-        list_o_directions = ['right', 'left', 'down', 'up']
-
-        # lists of the potential starting target locations
-        hor_start = []
-        vert_start = []
-
-        # generate a list of possible starting positions for the targets based on the number of lanes and building locations.
-        for i in range(self.vert_lanes):
-            hor_temp = i*(self.building_height + self.lane_width) + self.building_height + self.lane_width/2
-            hor_start.append(hor_temp)
-        for i in range(self.hort_lanes):
-            vert_temp = i*(self.building_width + self.lane_width) + self.building_width + self.lane_width/2
-            vert_start.append(vert_temp)
-
-        list_o_targets = []
-        
-        for i in range(num_targets):
-
-            starting_offset = i * 25 # provide an offset for each target. Ensures they are not bunched together
-            lane_offset = 25
-
-            temp_dir = random.choice(list_o_directions) # pick a random starting point
-            
-            if temp_dir == 'right':    
-                temp = (0 - starting_offset, random.choice(hor_start) + lane_offset, temp_dir, i+1)
-
-            if temp_dir == 'left':
-                temp = (self.screen.get_width() + starting_offset, random.choice(hor_start) - lane_offset, temp_dir, i+1)
-            
-            if temp_dir == 'up':
-                temp = (random.choice(vert_start) + lane_offset, self.screen.get_height()+ starting_offset, temp_dir, i+1)
-            
-            if temp_dir == 'down':
-                temp = (random.choice(vert_start) - lane_offset, 0 - starting_offset, temp_dir, i+1)
-            
-            print(temp)
-            
-            list_o_targets.append(temp)
-
-        return list_o_targets
-
-    def gen_target(self):
-        
         self.target_count += 1
 
         list_o_directions = ['right', 'left', 'down', 'up']
@@ -178,7 +134,7 @@ class Environment:
         if temp_dir == 'down':
             target = (random.choice(vert_start) - lane_offset, 0, temp_dir, self.target_count )
 
-        return target
+        return Target(target[0], target[1], target[2], id=target[3])
     
     def delete_target(self, target, targets):
         """
@@ -272,7 +228,7 @@ class Environment:
                 # event to generate one target every 25s
                 if event.type == TARGET:
                     new_target = self.gen_target()
-                    targets.append(Target(new_target[0], new_target[1], new_target[2], id=new_target[3]))
+                    targets.append(new_target)
 
             # fill the screen with a color to wipe away anything from last frame
             self.screen.fill("purple")
