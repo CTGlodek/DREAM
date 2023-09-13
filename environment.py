@@ -22,6 +22,7 @@ class Environment:
         self.building_width = 0             # building width
         self.building_height = 0            # building hieght
         self.lane_width = 100               # lane width
+        self.turn_points = set()         # all points for where a target can turn
         self.target_count = 0               # tracks the total number of targets generated
         self.auto_gen = False               # boolean flag for automatic target generation
 
@@ -53,9 +54,9 @@ class Environment:
         targets = []
         sensors = []
         buildings = []
-
-        self.building_width = (self.screen.get_width() - (self.vert_lanes * self.lane_width)) / (self.vert_lanes+1)
-        self.building_height = (self.screen.get_height() - (self.hort_lanes * self.lane_width)) / (self.hort_lanes + 1)
+        
+        self.building_width = int((self.screen.get_width() - (self.vert_lanes * self.lane_width)) / (self.vert_lanes+1))
+        self.building_height = int((self.screen.get_height() - (self.hort_lanes * self.lane_width)) / (self.hort_lanes + 1))
 
         
 
@@ -64,6 +65,15 @@ class Environment:
             for j in range(self.hort_lanes+1):
                 temp = [i*(self.building_width+self.lane_width), j*(self.building_height+self.lane_width), self.building_width, self.building_height]
                 buildings.append(temp)
+
+        # all the apots where a target can turn
+        for i in range(self.vert_lanes):
+            for j in range(self.hort_lanes):    
+                self.turn_points.add(int(self.building_width + 25)+ i*int(self.building_width+self.lane_width))
+                self.turn_points.add(int(self.building_width + 75)+ i*int(self.building_width+self.lane_width))
+                self.turn_points.add(int(self.building_height +25)+ j*int(self.building_height+self.lane_width))
+                self.turn_points.add(int(self.building_height +75)+ j*int(self.building_height+self.lane_width))
+                print('turning points: ', self.turn_points)
         
         if num_o_targets > 0:
 
@@ -242,6 +252,10 @@ class Environment:
 
             for target in targets:
                 target.move()
+                target.turn(self)
+                # testign a simple change in direction
+                #if target.position.x == self.building_width + 25:
+                    #target .direction = 'down'
                 target.draw_target(self.screen)  
                 self.delete_target(target, targets)
 
@@ -272,7 +286,7 @@ class Environment:
             dt = self.clock.tick(60) / 1000
             global_time += dt
 
-            if global_time % 1 == 0:
+            if global_time % 25 == 0:
                 print('The game time is: ', global_time)
         pygame.quit()
         print('Total number of active targets: ', len(targets))
