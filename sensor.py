@@ -1,6 +1,7 @@
 import pygame
 import math
 import numpy as np
+from agent import *
 
 # sensor.py 
 # version 0.2 : initial development
@@ -16,7 +17,8 @@ class Sensor:
                  fov=90,
                  energy=10000,
                  speed = 2, # not used currently
-                 mode='idle'):
+                 mode='idle',
+                 agent_type = None):
 
         self.position = pygame.Vector2(x,y)     # Vector 2 object
         self.radius = radius                    # sensor radius
@@ -30,6 +32,7 @@ class Sensor:
         self.angle = 270                        # angle between sensor and the target being tracked actively # 270 used for initialization
         self.detected = []                      # targets that are currently detected
         self.region_map = np.zeros((self.coverage_range, self.coverage_range)) # initialize the region map
+        self.agent = agent_type
 
         # Function to draw each sensor as a disk with lines representing the active FOV
     def draw_sensors(self, screen):
@@ -141,6 +144,7 @@ class Sensor:
         if not self.mode == 'sleep':
             
             # resets the region map 2d array to zeros
+            self.agent.s = self.region_map
             self.region_map = np.zeros((self.coverage_range, self.coverage_range)) 
             
             # Loop through all targets and check if they are within the coverage distance of the sensor and within FOV
@@ -166,6 +170,11 @@ class Sensor:
                         self.mode = 'active'
 
                         #break  # use if single target tracking is wanted, else it will track multiple targets
+            ##################################################
+            #### it is fitting the data 
+            ###################################################
+            self.agent.s_prime = self.region_map
+            self.agent.model.fit(np.expand_dims(self.agent.s_prime, axis=0), np.expand_dims(np.array([1, 100,   5]), axis=0))
 
             if len(self.detected) == 0:
                 # Mark the sensor as inactive and clear the detected_targets list

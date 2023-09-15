@@ -8,16 +8,19 @@ class Agent:
     def __init__(self,
                  state_space,
                  action_space,
-                 method):
-        self.state_space = state_space
-        self.action_space = action_space
-        self.method = method
+                 model=None):
+        self.state_space = state_space      # to accoutn for batch size
+        self.action_space = action_space    #to account for batch size
+        self.model = model
+        self.s = None                       # previous state
+        self.a = None                       # action taken from previous state
+        self.s_prime = None                 # state after action (current)
 
     def dqn(self):
         #learning_rate = 0.001
 
         model = Sequential([
-            Conv2D(10,10, strides = 2, activation='relu', input_shape=self.state_space),
+            Conv2D(10,10, strides = 2, activation='relu', input_shape=(100,100,1)),
             Conv2D(10,10,strides = 2, activation='relu'),
             Flatten(),
             Dense(self.action_space, activation='softmax')
@@ -27,5 +30,5 @@ class Agent:
                       optimizer=tf.keras.optimizers.Adam(),
                       metrics=['accuracy'])
         
-        return model
+        self.model = model
     

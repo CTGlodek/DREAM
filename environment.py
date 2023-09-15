@@ -5,6 +5,7 @@ import math
 import random
 from sensor import *
 from target import *
+from agent import *
 
 # environment.py 
 # version 0.2
@@ -94,7 +95,9 @@ class Environment:
 
         # Generate sensors based on user defined list
         for sensor in sensor_info:
-            temp_sensor = Sensor(sensor[0],sensor[1],fov=sensor[2])
+            # temporarily fixing dqn as the agent type
+            temp_sensor = Sensor(sensor[0],sensor[1],fov=sensor[2], agent_type=Agent((100,100),(3)))
+            temp_sensor.agent.dqn()
             sensors.append(temp_sensor)
             self.energy_total = self.energy_total + temp_sensor.energy_start
 
@@ -264,6 +267,7 @@ class Environment:
 
             for sensor in sensors:
                 region_map = sensor.update_sensor_fov(targets)
+                #print(type(sensor.agent.model))
                 sensor.update_energy()
                 
                 current_energy = current_energy + sensor.energy # tallies the energy
