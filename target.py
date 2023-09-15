@@ -11,16 +11,16 @@ class Target:
                  x,
                  y,
                  direction,
-                 speed = 1,
                  id = None,
                  size=8):
         
         self.id = id                # unique id for the target 
         self.position = pygame.Vector2(x,y)     # pygame vector object
         self.direction = direction  # direction of travel
-        self.speed = speed          # rate of travel to be used for movement
+        self.speed = random.choice([0.25,.5,1])          # rate of travel to be used for movement
         self.size = size            # Determines how large the target will be drawn
         self.angle = 0              # the angle of movment of the target
+        self.to_turn = False           # Flag to indicate if a turn should be made
 
 
     # draw the target
@@ -84,33 +84,40 @@ class Target:
 
     def turn(self, env):
 
-        turn_direction = random.randint(0,1)
+        chance_to_turn = random.randint(0,100)
 
-        w_building_lane_interval = int(env.building_width + env.lane_width)
-        h_building_lane_interval = int(env.building_height + env.lane_width)
+        if chance_to_turn < 100:
+            self.to_turn = True
 
-        if self.direction == 'right' or self.direction == 'left': # and self.position.x > env.building_width:
-            
-            #print(self.position.x % building_lane_interval)
-            if turn_direction == 0 and self.position.x in env.turn_points and self.position.x% w_building_lane_interval  == w_building_lane_interval-75:
-                #print('building width: ', env.building_width)
-                #print('Current position: ', self.position.x)
-                self.direction = 'down'
-                print('Turning down at: ', self.position.x)
+        if self.to_turn:
+            turn_direction = random.randint(0,1)
 
-            if turn_direction== 1 and self.position.x in env.turn_points and self.position.x % w_building_lane_interval == w_building_lane_interval - 25:
-                self.direction = 'up'
-                print('Turning up at: ',self.position.x)
+            w_building_lane_interval = int(env.building_width + env.lane_width)
+            h_building_lane_interval = int(env.building_height + env.lane_width)
 
-        elif self.direction == 'up' or self.direction == 'down':
+            if self.direction == 'right' or self.direction == 'left': # and self.position.x > env.building_width:
+                
+                #print(self.position.x % building_lane_interval)
+                if turn_direction == 0 and self.position.x in env.turn_points and self.position.x% w_building_lane_interval  == w_building_lane_interval-75:
+                    #print('building width: ', env.building_width)
+                    #print('Current position: ', self.position.x)
+                    self.direction = 'down'
+                    #print('Turning down at: ', self.position.x)
 
-            if turn_direction == 0 and self.position.y in env.turn_points and self.position.y % h_building_lane_interval == h_building_lane_interval -75:
-                self.direction = 'left'
-                print('turning left at: ', self.position.y)
+                if turn_direction== 1 and self.position.x in env.turn_points and self.position.x % w_building_lane_interval == w_building_lane_interval - 25:
+                    self.direction = 'up'
+                    #print('Turning up at: ',self.position.x)
+                self.to_turn = False
 
-            if turn_direction == 1 and self.position.y in env.turn_points and self.position.y % h_building_lane_interval == h_building_lane_interval -25:
-                self.direction = 'right'
-                print('turning right at: ', self.position.y)
-        return        
+            elif self.direction == 'up' or self.direction == 'down':
+
+                if turn_direction == 0 and self.position.y in env.turn_points and self.position.y % h_building_lane_interval == h_building_lane_interval -75:
+                    self.direction = 'left'
+                    #print('turning left at: ', self.position.y)
+
+                if turn_direction == 1 and self.position.y in env.turn_points and self.position.y % h_building_lane_interval == h_building_lane_interval -25:
+                    self.direction = 'right'
+                    #print('turning right at: ', self.position.y)
+                self.to_turn = False  
 
     

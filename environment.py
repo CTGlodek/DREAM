@@ -66,13 +66,18 @@ class Environment:
                 temp = [i*(self.building_width+self.lane_width), j*(self.building_height+self.lane_width), self.building_width, self.building_height]
                 buildings.append(temp)
 
-        # all the apots where a target can turn
-        for i in range(self.vert_lanes):
-            for j in range(self.hort_lanes):    
                 self.turn_points.add(int(self.building_width + 25)+ i*int(self.building_width+self.lane_width))
                 self.turn_points.add(int(self.building_width + 75)+ i*int(self.building_width+self.lane_width))
                 self.turn_points.add(int(self.building_height +25)+ j*int(self.building_height+self.lane_width))
                 self.turn_points.add(int(self.building_height +75)+ j*int(self.building_height+self.lane_width))
+
+        # all the apots where a target can turn
+        #for i in range(self.vert_lanes):
+            #for j in range(self.hort_lanes):    
+                #self.turn_points.add(int(self.building_width + 25)+ i*int(self.building_width+self.lane_width))
+                #self.turn_points.add(int(self.building_width + 75)+ i*int(self.building_width+self.lane_width))
+                #self.turn_points.add(int(self.building_height +25)+ j*int(self.building_height+self.lane_width))
+                #self.turn_points.add(int(self.building_height +75)+ j*int(self.building_height+self.lane_width))
                 print('turning points: ', self.turn_points)
         
         if num_o_targets > 0:
@@ -217,6 +222,7 @@ class Environment:
 
         # pygame setup
         pygame.init()
+        pygame.display.set_caption("2D Environment")
         self.running = True
         self.clock = pygame.time.Clock()
         global_time = 0
@@ -225,7 +231,7 @@ class Environment:
         TARGET = pygame.USEREVENT + 1
         
         if self.auto_gen:
-            pygame.time.set_timer(TARGET, 250)
+            pygame.time.set_timer(TARGET, 500)
 
         while self.running:
                 # poll for events
@@ -253,9 +259,6 @@ class Environment:
             for target in targets:
                 target.move()
                 target.turn(self)
-                # testign a simple change in direction
-                #if target.position.x == self.building_width + 25:
-                    #target .direction = 'down'
                 target.draw_target(self.screen)  
                 self.delete_target(target, targets)
 
