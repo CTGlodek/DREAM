@@ -17,7 +17,7 @@ class Target:
         self.id = id                # unique id for the target 
         self.position = pygame.Vector2(x,y)     # pygame vector object
         self.direction = direction  # direction of travel
-        self.speed = random.choice([0.25,.5,1])          # rate of travel to be used for movement
+        self.speed = 1              # rate of travel to be used for movement    # random.choice([0.25,.5,1])     # can be used for random speeds.    
         self.size = size            # Determines how large the target will be drawn
         self.angle = 0              # the angle of movment of the target
         self.to_turn = False           # Flag to indicate if a turn should be made
