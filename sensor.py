@@ -142,9 +142,8 @@ class Sensor:
         self.detected = []
 
         if not self.mode == 'sleep':
-            
+
             # resets the region map 2d array to zeros
-            self.agent.s = self.region_map
             self.region_map = np.zeros((self.coverage_range, self.coverage_range)) 
             
             # Loop through all targets and check if they are within the coverage distance of the sensor and within FOV
@@ -173,9 +172,17 @@ class Sensor:
             ##################################################
             #### it is fitting the data 
             ###################################################
-            self.agent.s_prime = self.region_map
-            self.agent.model.fit(np.expand_dims(self.agent.s_prime, axis=0), np.expand_dims(np.array([1, 100,   5]), axis=0))
 
+            self.agent.s_prime = self.region_map
+            
+            idx = np.argmax(self.agent.a)
+            self.agent.a[idx] += len(self.detected)
+
+            self.agent.model.fit(np.expand_dims(self.agent.s, axis=0), np.expand_dims(self.agent.a, axis=0))
+
+            self.agent.a = self.agent.model.predict(np.expand_dims(self.agent.s_prime, axis=0))[0]
+
+            ###################################################
             if len(self.detected) == 0:
                 # Mark the sensor as inactive and clear the detected_targets list
                 self.mode = 'idle'
