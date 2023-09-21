@@ -29,7 +29,7 @@ class Sensor:
         self.energy_start = energy              # initial amount of energy
         self.speed = speed                      # speed 
         self.mode = mode                        # the mode of the sensor: idle, active, wake_up, and sleep
-        self.angle = 270                        # angle between sensor and the target being tracked actively # 270 used for initialization
+        self.angle = 180                        # angle between sensor and the target being tracked actively # 270 used for initialization
         self.detected = []                      # targets that are currently detected
         self.region_map = np.zeros((self.coverage_range, self.coverage_range)) # initialize the region map
         self.agent = agent_type
@@ -135,8 +135,11 @@ class Sensor:
                 self.angle = math.degrees(math.atan2(self.detected[0].position.y - self.position.y, self.detected[0].position.x - self.position.x)) % 360 
 
         # updates the fov angle based on the user define value
-        if method == 'directed':
-            self.angle = angle_update
+        if method == 'directed' or method == 'explore':
+
+            angle_update = self.agent.next_move(method)
+
+            self.angle += angle_update
 
         # Clear the detected_targets list for the current sensor
         self.detected = []
@@ -172,11 +175,16 @@ class Sensor:
             ##################################################
             #### it is fitting the data 
             ###################################################
+            
+            # update s with the state from which the action was chosen
+            self.agent.s = self.agent.s_prime
 
+            # update s_prime to the post action
             self.agent.s_prime = self.region_map
             
+            # calculate the reward (without discount) and update the qtable
             idx = np.argmax(self.agent.a)
-            self.agent.a[idx] += len(self.detected)
+            self.agent.a[idx] = len(self.detected) # update to averaged sum 
 
             self.agent.model.fit(np.expand_dims(self.agent.s, axis=0), np.expand_dims(self.agent.a, axis=0))
 

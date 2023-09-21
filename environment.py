@@ -230,9 +230,16 @@ class Environment:
         self.clock = pygame.time.Clock()
         global_time = 0
 
+        # Allow for inital training
+        sensor_method = 'explore'
+
         # custom event to generate targets every 25 seconds (or 250 msec)
         TARGET = pygame.USEREVENT + 1
         
+        SENSOR_METHOD = pygame.USEREVENT + 2
+
+        pygame.time.set_timer(SENSOR_METHOD, 100000)
+
         if self.auto_gen:
             pygame.time.set_timer(TARGET, 500)
 
@@ -248,6 +255,9 @@ class Environment:
                 if event.type == TARGET:
                     new_target = self.gen_target()
                     targets.append(new_target)
+
+                if event.type == SENSOR_METHOD:
+                    sensor_method = 'directed'
 
             # fill the screen with a color to wipe away anything from last frame
             self.screen.fill("purple")
@@ -266,7 +276,7 @@ class Environment:
                 self.delete_target(target, targets)
 
             for sensor in sensors:
-                region_map = sensor.update_sensor_fov(targets)
+                region_map = sensor.update_sensor_fov(targets, method=sensor_method)
                 #print(type(sensor.agent.model))
                 sensor.update_energy()
                 

@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+import random
 
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Conv2D, MaxPool2D, Flatten, Activation
@@ -14,7 +15,7 @@ class Agent:
         self.model = model
         self.s = np.zeros(state_space)                       # previous state
         self.a = np.zeros(action_space)                     # action taken from previous state
-        self.s_prime = None                 # state after action (current)
+        self.s_prime = np.zeros(state_space)                # state after action (current)
         self.a_prime = None
 
     def dqn(self):
@@ -27,9 +28,28 @@ class Agent:
             Dense(self.action_space, activation='softmax')
         ])
 
-        model.compile(loss='categorical_crossentropy',
+        model.compile(loss='huber',
                       optimizer=tf.keras.optimizers.Adam(),
-                      metrics=['accuracy'])
+                      metrics=['MSE'])
         
         self.model = model
+    
+    def next_move(self, method):
+        
+        best_action = np.argmax(self.a)
+
+        chance = random.randint(1,100)
+
+        if chance > 85 or method == 'explore':
+            best_action = random.randint(0,2)
+
+        move = 0
+
+        if best_action == 1: move = 0
+
+        elif best_action == 0: move = -2
+
+        elif best_action == 2: move = 2
+
+        return move
     
