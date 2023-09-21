@@ -186,7 +186,7 @@ class Sensor:
             idx = np.argmax(self.agent.a)
             self.agent.a[idx] = len(self.detected) # update to averaged sum 
 
-            self.agent.model.fit(np.expand_dims(self.agent.s, axis=0), np.expand_dims(self.agent.a, axis=0))
+            self.agent.model.fit(np.expand_dims(self.agent.s, axis=0), np.expand_dims(self.agent.a, axis=0), verbose=1)
 
             self.agent.a = self.agent.model.predict(np.expand_dims(self.agent.s_prime, axis=0))[0]
 

@@ -22,13 +22,14 @@ class Agent:
         #learning_rate = 0.001
 
         model = Sequential([
-            Conv2D(10,10, strides = 2, activation='relu', input_shape=(100,100,1)),
-            Conv2D(10,10,strides = 2, activation='relu'),
+            Conv2D(32,8, strides = 2, activation='relu', input_shape=(100,100,1)),
+            Conv2D(64,4,strides = 2, activation='relu'),
+            Conv2D(64,3,strides = 1, activation='relu'),
             Flatten(),
-            Dense(self.action_space, activation='softmax')
+            Dense(self.action_space, activation='linear')
         ])
 
-        model.compile(loss='huber',
+        model.compile(loss='mse', #'huber'
                       optimizer=tf.keras.optimizers.Adam(),
                       metrics=['MSE'])
         
@@ -47,9 +48,9 @@ class Agent:
 
         if best_action == 1: move = 0
 
-        elif best_action == 0: move = -2
+        elif best_action == 0: move = -5
 
-        elif best_action == 2: move = 2
+        elif best_action == 2: move = 5
 
         return move
     
