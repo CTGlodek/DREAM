@@ -13,10 +13,11 @@ class Agent:
         self.state_space = state_space      # to accoutn for batch size
         self.action_space = action_space    #to account for batch size
         self.model = model
-        self.s = np.zeros(state_space)                       # previous state
-        self.a = np.zeros(action_space)                     # action taken from previous state
-        self.s_prime = np.zeros(state_space)                # state after action (current)
+        self.s = np.zeros(state_space)          # previous state
+        self.a = np.zeros(action_space)         # action taken from previous state
+        self.s_prime = np.zeros(state_space)    # state after action (current)
         self.a_prime = None
+        self.gamma = .3                         # gamma is the discount on future rewards
 
     def dqn(self):
         #learning_rate = 0.001

@@ -134,6 +134,9 @@ class Sensor:
             if len(self.detected) > 0: 
                 self.angle = math.degrees(math.atan2(self.detected[0].position.y - self.position.y, self.detected[0].position.x - self.position.x)) % 360 
 
+        if method == 'fixed':
+            self.angle = self.angle
+
         # updates the fov angle based on the user define value
         if method == 'directed' or method == 'explore':
 
@@ -167,6 +170,8 @@ class Sensor:
                         self.detected.append(target)  # Convert to a tuple
                         location_temp = target.position - self.position # identify its location
 
+                        #print(location_temp)
+
                         # update the region map with the targets location only if it is in the FOV
                         self.region_map[int(location_temp.x), int(location_temp.y)] = 1
                         self.mode = 'active'
@@ -181,14 +186,20 @@ class Sensor:
 
             # update s_prime to the post action
             self.agent.s_prime = self.region_map
+
+            # get future action prob
+            self.agent.a_prime = self.agent.model.predict(np.expand_dims(self.agent.s_prime, axis=0))[0]
             
             # calculate the reward (without discount) and update the qtable
             idx = np.argmax(self.agent.a)
-            self.agent.a[idx] = len(self.detected) # update to averaged sum 
+            #self.agent.a[idx] = len(self.detected) # update to averaged sum 
 
-            self.agent.model.fit(np.expand_dims(self.agent.s, axis=0), np.expand_dims(self.agent.a, axis=0), verbose=1)
+            # calculate the reward with discounted future reward and update the qtable
+            self.agent.a[idx] = len(self.detected) + self.agent.gamma * np.max(self.agent.a_prime)
 
-            self.agent.a = self.agent.model.predict(np.expand_dims(self.agent.s_prime, axis=0))[0]
+            self.agent.model.fit(np.expand_dims(self.agent.s, axis=0), np.expand_dims(self.agent.a, axis=0), verbose=0)
+
+            self.agent.a = self.agent.a_prime
 
             ###################################################
             if len(self.detected) == 0:
@@ -213,11 +224,11 @@ class Sensor:
 
         # initial energy consuption when idle
         if self.mode == 'idle':
-            self.energy = self.energy - 1
+            self.energy = self.energy - .1
         
         # energy consumption when active - this includes movement
         if self.mode == 'active':
-            self.energy = self.energy - 2
+            self.energy = self.energy - .2
         
         # wake up from sleep  # not used yet
         if self.mode == 'wake_up':

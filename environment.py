@@ -225,7 +225,7 @@ class Environment:
 
         # pygame setup
         pygame.init()
-        pygame.display.set_caption("2D Environment")
+        pygame.display.set_caption("2D Environment: Exploring")
         self.running = True
         self.clock = pygame.time.Clock()
         global_time = 0
@@ -258,6 +258,7 @@ class Environment:
 
                 if event.type == SENSOR_METHOD:
                     sensor_method = 'directed'
+                    pygame.display.set_caption("2D Environment: DQN Directed")
 
             # fill the screen with a color to wipe away anything from last frame
             self.screen.fill("purple")
