@@ -23,7 +23,7 @@ class Agent:
         #learning_rate = 0.001
 
         model = Sequential([
-            Conv2D(32,8, strides = 2, activation='relu', input_shape=(100,100,1)),
+            Conv2D(32,8, strides = 2, activation='relu', input_shape=(200,200,1)),
             Conv2D(64,4,strides = 2, activation='relu'),
             Conv2D(64,3,strides = 1, activation='relu'),
             Flatten(),

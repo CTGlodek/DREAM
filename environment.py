@@ -26,6 +26,7 @@ class Environment:
         self.turn_points = set()         # all points for where a target can turn
         self.target_count = 0               # tracks the total number of targets generated
         self.auto_gen = False               # boolean flag for automatic target generation
+        self.sensor_range = 100             # the sensing range for each sensor
 
     def create_env(self, 
                    num_o_targets, 
@@ -96,7 +97,7 @@ class Environment:
         # Generate sensors based on user defined list
         for sensor in sensor_info:
             # temporarily fixing dqn as the agent type
-            temp_sensor = Sensor(sensor[0],sensor[1],fov=sensor[2], agent_type=Agent((100,100),(3)))
+            temp_sensor = Sensor(sensor[0],sensor[1],fov=sensor[2], coverage_range=self.sensor_range, agent_type=Agent((self.sensor_range*2,self.sensor_range*2),(3)))
             temp_sensor.agent.dqn()
             sensors.append(temp_sensor)
             self.energy_total = self.energy_total + temp_sensor.energy_start

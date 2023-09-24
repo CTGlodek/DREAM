@@ -150,7 +150,7 @@ class Sensor:
         if not self.mode == 'sleep':
 
             # resets the region map 2d array to zeros
-            self.region_map = np.zeros((self.coverage_range, self.coverage_range)) 
+            self.region_map = np.zeros((self.coverage_range*2, self.coverage_range*2)) 
             
             # Loop through all targets and check if they are within the coverage distance of the sensor and within FOV
             for target in targets:
