@@ -173,7 +173,7 @@ class Sensor:
                         #print(location_temp)
 
                         # update the region map with the targets location only if it is in the FOV
-                        self.region_map[int(location_temp.x), int(location_temp.y)] = 1
+                        self.region_map[int(location_temp.x + 100), int(location_temp.y + 100)] = 1
                         self.mode = 'active'
 
                         #break  # use if single target tracking is wanted, else it will track multiple targets

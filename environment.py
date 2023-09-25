@@ -242,7 +242,7 @@ class Environment:
         pygame.time.set_timer(SENSOR_METHOD, 100000)
 
         if self.auto_gen:
-            pygame.time.set_timer(TARGET, 500)
+            pygame.time.set_timer(TARGET, 1500)
 
         while self.running:
                 # poll for events
