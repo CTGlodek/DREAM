@@ -194,8 +194,12 @@ class Sensor:
             idx = np.argmax(self.agent.a)
             #self.agent.a[idx] = len(self.detected) # update to averaged sum 
 
-            # calculate the reward with discounted future reward and update the qtable
-            self.agent.a[idx] = len(self.detected) + self.agent.gamma * np.max(self.agent.a_prime)
+            if self.mode == 'idle':
+                self.agent.a[idx] = -1 + self.agent.gamma * np.max(self.agent.a_prime)
+            
+            if self.mode == 'active':
+                # calculate the reward with discounted future reward and update the qtable
+                self.agent.a[idx] = len(self.detected) + self.agent.gamma * np.max(self.agent.a_prime)
 
             self.agent.model.fit(np.expand_dims(self.agent.s, axis=0), np.expand_dims(self.agent.a, axis=0), verbose=0)
 
