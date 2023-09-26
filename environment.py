@@ -27,6 +27,7 @@ class Environment:
         self.target_count = 0               # tracks the total number of targets generated
         self.auto_gen = False               # boolean flag for automatic target generation
         self.sensor_range = 100             # the sensing range for each sensor
+        self.max_target = 250               # maximum number of targets at a time
 
     def create_env(self, 
                    num_o_targets, 
@@ -254,8 +255,9 @@ class Environment:
 
                 # event to generate one target every 25s
                 if event.type == TARGET:
-                    new_target = self.gen_target()
-                    targets.append(new_target)
+                    if len(targets) < self.max_target:
+                        new_target = self.gen_target()
+                        targets.append(new_target)
 
                 if event.type == SENSOR_METHOD:
                     sensor_method = 'directed'
