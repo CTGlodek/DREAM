@@ -27,7 +27,7 @@ class Environment:
         self.target_count = 0               # tracks the total number of targets generated
         self.auto_gen = False               # boolean flag for automatic target generation
         self.sensor_range = 100             # the sensing range for each sensor
-        self.max_target = 250               # maximum number of targets at a time
+        self.max_target = 100               # maximum number of targets at a time
 
     def create_env(self, 
                    num_o_targets, 
@@ -240,7 +240,7 @@ class Environment:
         
         SENSOR_METHOD = pygame.USEREVENT + 2
 
-        pygame.time.set_timer(SENSOR_METHOD, 100000)
+        pygame.time.set_timer(SENSOR_METHOD, 150000)
 
         if self.auto_gen:
             pygame.time.set_timer(TARGET, 1500)
@@ -260,8 +260,14 @@ class Environment:
                         targets.append(new_target)
 
                 if event.type == SENSOR_METHOD:
-                    sensor_method = 'directed'
-                    pygame.display.set_caption("2D Environment: DQN Directed")
+                    if sensor_method == 'intializing':
+                        sensor_method = 'explore'
+
+                    elif sensor_method == 'explore':
+                        sensor_method = 'directed'
+
+                    if sensor_method == 'directed':
+                        pygame.display.set_caption("2D Environment: DQN Directed")
 
             # fill the screen with a color to wipe away anything from last frame
             self.screen.fill("purple")
@@ -311,6 +317,7 @@ class Environment:
                 print('The game time is: ', global_time)
         pygame.quit()
         print('Total number of active targets: ', len(targets))
+        print('Total length of this episode: ', len(self.tracked))
         return region_map, targets
 
     

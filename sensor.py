@@ -134,11 +134,18 @@ class Sensor:
             if len(self.detected) > 0: 
                 self.angle = math.degrees(math.atan2(self.detected[0].position.y - self.position.y, self.detected[0].position.x - self.position.x)) % 360 
 
+        if method == 'intializing':
+            self.mode = 'sleep'
+            
+
         if method == 'fixed':
             self.angle = self.angle
 
         # updates the fov angle based on the user define value
         if method == 'directed' or method == 'explore':
+            
+            if self.mode == 'sleep':
+                self.mode = 'idle'
 
             angle_update = self.agent.next_move(method)
 
