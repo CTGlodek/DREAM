@@ -1,8 +1,10 @@
 import pygame
+
 import numpy as np
 import matplotlib.pyplot as plt
-import math
+
 import random
+
 import config
 from sensor import *
 from target import *

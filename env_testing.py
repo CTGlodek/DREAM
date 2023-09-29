@@ -1,5 +1,4 @@
-import pygame
-import numpy as np
+
 from environment import *
 from sensor import *
 from target import *

@@ -1,6 +1,5 @@
 import pygame
 import random
-import environment
 
 # target.py 
 # version 0.2 : initial development
