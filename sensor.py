@@ -113,6 +113,7 @@ class Sensor:
 
     def update_sensor_fov(self, 
                           targets,
+                          episode,
                           method=None,
                           angle_update=270):
         """
@@ -147,7 +148,7 @@ class Sensor:
             if self.mode == 'sleep':
                 self.mode = 'idle'
 
-            angle_update = self.agent.next_move(method)
+            angle_update = self.agent.next_move(episode)
 
             self.angle += angle_update
 

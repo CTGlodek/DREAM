@@ -287,6 +287,7 @@ class Environment:
 
             covered_targets = []
             current_energy = 0 # initialize available energy for this moment
+            episode = len(self.tracked)
 
             # basic 'buildings' - helps to see the lanes
             if len(self.tracked) > train_limit:
@@ -301,7 +302,7 @@ class Environment:
                 self.delete_target(target, targets)
 
             for sensor in sensors:
-                region_map = sensor.update_sensor_fov(targets, method=sensor_method)
+                region_map = sensor.update_sensor_fov(targets, episode, method=sensor_method)
                 #print(type(sensor.agent.model))
                 sensor.update_energy()
                 

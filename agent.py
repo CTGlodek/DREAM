@@ -18,6 +18,9 @@ class Agent:
         self.s_prime = np.zeros(state_space)    # state after action (current)
         self.a_prime = None
         self.gamma = .3                         # gamma is the discount on future rewards
+        self.epsilon = 1                        # initial epsilon value
+        self.min_eps = 0.05                     # lowest value for epsilon
+        self.eps_decay = 0.0001                 # decay rate for the epsilon value
 
     def dqn(self):
         #learning_rate = 0.001
@@ -37,15 +40,20 @@ class Agent:
         
         self.model = model
     
-    def next_move(self, method):
+    def next_move(self, episode):
         
-        best_action = np.argmax(self.a)
-
-        chance = random.randint(1,100)
-
-        if chance > 85 or method == 'explore':
+        rand_num = np.random.rand()
+        
+        # 2. Explore using the Epsilon Greedy Exploration Strategy
+        if rand_num <= self.epsilon:
             best_action = random.randint(0,2)
 
+        else:
+           best_action = np.argmax(self.a) 
+        
+        # decrement epsilon
+        self.epsilon = self.min_eps + (1 - self.min_eps) * np.exp(-self.eps_decay * episode)
+        
         move = 0
 
         if best_action == 1: move = 0
