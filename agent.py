@@ -27,6 +27,7 @@ class Agent:
             Conv2D(64,4,strides = 2, activation='relu'),
             Conv2D(64,3,strides = 1, activation='relu'),
             Flatten(),
+            Dense(128, activation ='relu'),
             Dense(self.action_space, activation='linear')
         ])
 

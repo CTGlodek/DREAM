@@ -3,9 +3,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import random
+import config
 from sensor import *
 from target import *
 from agent import *
+
+if config.colab:
+    #colab
+    import os
+    os.environ["SDL_VIDEODRIVER"] = "dummy"
+
+    from google.colab.patches import cv2_imshow
+    from google.colab import output
 
 # environment.py 
 # version 0.2
@@ -232,6 +241,9 @@ class Environment:
         self.clock = pygame.time.Clock()
         global_time = 0
 
+        # the amount of training without visuals
+        train_limit = 15000
+
         # Allow for inital training
         sensor_method = 'explore'
 
@@ -270,19 +282,22 @@ class Environment:
                         pygame.display.set_caption("2D Environment: DQN Directed")
 
             # fill the screen with a color to wipe away anything from last frame
-            self.screen.fill("purple")
+            if len(self.tracked) > train_limit:
+                self.screen.fill("purple")
 
             covered_targets = []
             current_energy = 0 # initialize available energy for this moment
 
             # basic 'buildings' - helps to see the lanes
-            for building in buildings:
-                pygame.draw.rect(self.screen, (0,0,255), building, 0)
+            if len(self.tracked) > train_limit:
+                for building in buildings:
+                    pygame.draw.rect(self.screen, (0,0,255), building, 0)
 
             for target in targets:
                 target.move()
                 target.turn(self)
-                target.draw_target(self.screen)  
+                if len(self.tracked) > train_limit:
+                    target.draw_target(self.screen)  
                 self.delete_target(target, targets)
 
             for sensor in sensors:
@@ -296,7 +311,8 @@ class Environment:
                     for var in sensor.detected:
                         covered_targets.append(var.id)
 
-                sensor.draw_sensors(self.screen)
+                if len(self.tracked) > train_limit:
+                    sensor.draw_sensors(self.screen)
                     
             # appends all the targets, by id, (if any) that were tracked in this round
             self.tracked.append(covered_targets)
@@ -304,8 +320,20 @@ class Environment:
             # appends the total available energy in this moment
             self.energy.append(current_energy)
             
-            # flip() the display to put your work on screen
-            pygame.display.flip()
+            if len(self.tracked) > train_limit:
+                
+                if config.colab:
+                    # colab
+                    image = pygame.surfarray.array3d(self.screen)
+                    image = image.transpose([1, 0, 2])
+                    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+                    
+                    output.clear(wait=True)
+                    cv2_imshow(image)
+
+                else:
+                    # flip() the display to put your work on screen
+                    pygame.display.flip()
 
             # limits FPS to 60
             # dt is delta time in seconds since last frame, used for framerate-
