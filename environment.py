@@ -9,6 +9,7 @@ import config
 from sensor import *
 from target import *
 from agent import *
+from federated import *
 
 if config.colab:
     #colab
@@ -19,7 +20,6 @@ if config.colab:
     from google.colab import output
 
 # environment.py 
-# version 0.2
 
 class Environment:
     def __init__(self,
@@ -39,6 +39,7 @@ class Environment:
         self.auto_gen = False               # boolean flag for automatic target generation
         self.sensor_range = 100             # the sensing range for each sensor
         self.max_target = 100               # maximum number of targets at a time
+        self.fed_freq = 25                  # how often the federated update will occur - default 25
 
     def create_env(self, 
                    num_o_targets, 
@@ -92,7 +93,7 @@ class Environment:
                 #self.turn_points.add(int(self.building_width + 75)+ i*int(self.building_width+self.lane_width))
                 #self.turn_points.add(int(self.building_height +25)+ j*int(self.building_height+self.lane_width))
                 #self.turn_points.add(int(self.building_height +75)+ j*int(self.building_height+self.lane_width))
-                print('turning points: ', self.turn_points)
+                #print('turning points: ', self.turn_points)
         
         if num_o_targets > 0:
 
@@ -244,7 +245,7 @@ class Environment:
         global_time = 0
 
         # the amount of training without visuals
-        train_limit = 15000
+        train_limit = 10
 
         # Allow for inital training
         sensor_method = 'explore'
@@ -295,6 +296,17 @@ class Environment:
             if len(self.tracked) > train_limit:
                 for building in buildings:
                     pygame.draw.rect(self.screen, (0,0,255), building, 0)
+
+            if len(self.tracked) % self.fed_freq == 0:
+                weights = []
+                for sensor in sensors:
+                    w_temp = sensor.agent.grab_weights()
+                    weights.append(w_temp)
+
+                w_avg = avg_weights(weights)
+
+                for sensor in sensors:
+                    sensor.agent.update_weights(w_avg)
 
             for target in targets:
                 target.move()

@@ -2,6 +2,7 @@ import pygame
 import math
 import numpy as np
 from agent import *
+from federated import *
 
 # sensor.py 
 # version 0.2 : initial development

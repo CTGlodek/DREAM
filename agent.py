@@ -64,3 +64,10 @@ class Agent:
 
         return move
     
+    def grab_weights(self):
+        w_temp = self.model.get_weights()
+        return np.array(w_temp, dtype=object)
+    
+    def update_weights(self, updated_weight):
+        self.model.set_weights(updated_weight)
+    
