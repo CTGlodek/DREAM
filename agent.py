@@ -70,4 +70,5 @@ class Agent:
     
     def update_weights(self, updated_weight):
         self.model.set_weights(updated_weight)
+        #print('Weights updated')
     

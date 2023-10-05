@@ -13,6 +13,8 @@ from federated import *
 
 if config.colab:
     #colab
+    import cv2
+
     import os
     os.environ["SDL_VIDEODRIVER"] = "dummy"
 
@@ -223,7 +225,7 @@ class Environment:
         return track_temp, energy_temp
     
 
-    def run_env(self, targets, sensors, buildings):
+    def run_env(self, targets, sensors, buildings, explore, train, test):
         
         """
         The main function for running the simulation.
@@ -245,7 +247,9 @@ class Environment:
         global_time = 0
 
         # the amount of training without visuals
-        train_limit = 10
+        explore_limit = explore
+        train_limit = train
+        test_limit = test
 
         # Allow for inital training
         sensor_method = 'explore'
@@ -253,16 +257,27 @@ class Environment:
         # custom event to generate targets every 25 seconds (or 250 msec)
         TARGET = pygame.USEREVENT + 1
         
-        SENSOR_METHOD = pygame.USEREVENT + 2
+        #SENSOR_METHOD = pygame.USEREVENT + 2
 
-        pygame.time.set_timer(SENSOR_METHOD, 150000)
+        #pygame.time.set_timer(SENSOR_METHOD, 150000)
 
         if self.auto_gen:
             pygame.time.set_timer(TARGET, 1500)
 
         while self.running:
                 # poll for events
-            
+            if len(self.tracked) > explore_limit:
+                pygame.display.set_caption("2D Environment: DQN Directed - Training")
+                sensor_method = 'directed'
+
+            # fill the screen with a color to wipe away anything from last frame
+            if len(self.tracked) > train_limit:
+                self.screen.fill("purple")
+                pygame.display.set_caption("2D Environment: DQN Directed - Testing")
+
+            if len(self.tracked) >= test_limit:
+                self.running = False
+
             for event in pygame.event.get():
                 # pygame.QUIT event means the user clicked X to close your window
                 if event.type == pygame.QUIT:
@@ -274,19 +289,18 @@ class Environment:
                         new_target = self.gen_target()
                         targets.append(new_target)
 
-                if event.type == SENSOR_METHOD:
-                    if sensor_method == 'intializing':
-                        sensor_method = 'explore'
+                #if event.type == SENSOR_METHOD:
+                    #if sensor_method == 'intializing':
+                        #sensor_method = 'explore'
 
-                    elif sensor_method == 'explore':
-                        sensor_method = 'directed'
+                    #elif sensor_method == 'explore':
+                        #sensor_method = 'directed'
 
-                    if sensor_method == 'directed':
-                        pygame.display.set_caption("2D Environment: DQN Directed")
+                    #if sensor_method == 'directed':
+                        #pygame.display.set_caption("2D Environment: DQN Directed")
+            
 
-            # fill the screen with a color to wipe away anything from last frame
-            if len(self.tracked) > train_limit:
-                self.screen.fill("purple")
+
 
             covered_targets = []
             current_energy = 0 # initialize available energy for this moment

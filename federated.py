@@ -10,4 +10,6 @@ def avg_weights(weights):
 
     w_avg = w_total / len(weights)
 
+    print('Federated Learning Triggered')
+
     return w_avg
