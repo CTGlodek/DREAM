@@ -251,6 +251,15 @@ class Environment:
         train_limit = train
         test_limit = test
 
+        # initalizing the font
+        font = pygame.font.Font('freesansbold.ttf', 32)
+        time_step_text = 'Time Step: ' + str(len(self.tracked))
+        text = font.render(time_step_text, True, (0, 255, 0), (0, 0, 128)) # green , blue
+        # create a rectangular object for the text surface object
+        textRect = text.get_rect()
+        # set the center of the rectangular object.
+        textRect.center = (150, 50)
+
         # Allow for inital training
         sensor_method = 'explore'
 
@@ -265,6 +274,7 @@ class Environment:
             pygame.time.set_timer(TARGET, 1500)
 
         while self.running:
+
                 # poll for events
             if len(self.tracked) > explore_limit:
                 pygame.display.set_caption("2D Environment: DQN Directed - Training")
@@ -349,6 +359,10 @@ class Environment:
             # appends the total available energy in this moment
             self.energy.append(current_energy)
             
+            time_step_text = 'Time Step: ' + str(len(self.tracked))
+            text = font.render(time_step_text, True, (0, 255, 0), (0, 0, 128)) # green , blue
+            self.screen.blit(text, textRect)
+
             if len(self.tracked) > train_limit:
                 
                 if config.colab:
@@ -363,6 +377,7 @@ class Environment:
                 else:
                     # flip() the display to put your work on screen
                     pygame.display.flip()
+                    pygame.display.update()
 
             # limits FPS to 60
             # dt is delta time in seconds since last frame, used for framerate-

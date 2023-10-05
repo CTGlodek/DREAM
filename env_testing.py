@@ -26,9 +26,9 @@ target_1, sensor_1, buildings =env_test.create_env(0, # number of targets
 env_test.run_env(target_1, 
                  sensor_1, 
                  buildings, 
-                 explore = 500, # length of time the agents will freely explore
-                 train = 1000,  # length of time the agents will train with decaying epsilon
-                 test = 1500)   # length of time the agents will tested
+                 explore = 50, # length of time the agents will freely explore
+                 train = 10,  # length of time the agents will train with decaying epsilon
+                 test = 150)   # length of time the agents will tested
 
 env_test.env_stats()
 
