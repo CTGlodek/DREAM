@@ -209,10 +209,13 @@ class Environment:
         for i,j in enumerate(self.tracked):
             track_temp[i][0:len(j)] = j
 
+        unique_tracked = np.unique(track_temp)[1:]
+        num_unique_tracked = len(np.unique(track_temp))-1
+        total_targets = self.target_count
         # show the number of targets tracked and their IDs
-        print('The unique targets tracked: ',np.unique(track_temp)[1:]) # excludes the zero used for padding the arrays.
-        print('The number of unique targets tracked: ', len(np.unique(track_temp))-1) # -1 so we dont count the zero
-        print('The total number of targets generated: ', self.target_count)
+        print('The unique targets tracked: ',unique_tracked) # excludes the zero used for padding the arrays.
+        print('The number of unique targets tracked: ', num_unique_tracked) # -1 so we dont count the zero
+        print('The total number of targets generated: ', total_targets)
         if plot:
 
             fig, (ax1, ax2) = plt.subplots(1,2, figsize=(10,5))
@@ -222,7 +225,7 @@ class Environment:
             ax2.plot(energy_temp);
             ax2.set_title('Total Energy Available')
 
-        return track_temp, energy_temp
+        return track_temp, energy_temp, unique_tracked, num_unique_tracked, total_targets
     
 
     def run_env(self, targets, sensors, buildings, explore, train, test):
