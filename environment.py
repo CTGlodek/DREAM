@@ -170,6 +170,32 @@ class Environment:
 
         return Target(target[0], target[1], target[2], id=target[3])
     
+    def prepopoulate(self):
+        
+        prepop_targets =[]
+
+        for i in range(self.max_target):
+            pp_target = self.gen_target()
+
+            rand_pos_h = random.randint(0, self.screen.get_height())
+            rand_pos_w = random.randint(0, self.screen.get_width())
+
+            if pp_target.direction == 'right':
+                pp_target.position.x += rand_pos_w
+            
+            if pp_target.direction == 'left':
+                pp_target.position.x -= rand_pos_w
+
+            if pp_target.direction == 'down':
+                pp_target.position.y += rand_pos_h # just a horizontal movement for initial testing
+
+            if pp_target.direction == 'up':
+                pp_target.position.y -= rand_pos_h # just a horizontal movement for initial testing
+
+            prepop_targets.append(pp_target)
+
+        return prepop_targets
+
     def delete_target(self, target, targets):
         """
         Removes a target object form teh tragets list if it is beyond ht ebounds of the screen
@@ -269,6 +295,8 @@ class Environment:
         # custom event to generate targets every 25 seconds (or 250 msec)
         TARGET = pygame.USEREVENT + 1
         
+        targets = self.prepopoulate()
+
         #SENSOR_METHOD = pygame.USEREVENT + 2
 
         #pygame.time.set_timer(SENSOR_METHOD, 150000)
@@ -327,6 +355,7 @@ class Environment:
                 for building in buildings:
                     pygame.draw.rect(self.screen, (0,0,255), building, 0)
 
+            # trigger federated learning 
             if len(self.tracked) % self.fed_freq == 0:
                 weights = []
                 for sensor in sensors:

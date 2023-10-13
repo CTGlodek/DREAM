@@ -28,7 +28,7 @@ env_test.run_env(target_1,
                  buildings, 
                  explore = 50, # length of time the agents will freely explore
                  train = 1,  # length of time the agents will train with decaying epsilon
-                 test = 1000)   # length of time the agents will tested
+                 test = 500)   # length of time the agents will tested
 
 env_test.env_stats()
 
