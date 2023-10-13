@@ -293,8 +293,9 @@ class Environment:
         sensor_method = 'explore'
 
         # custom event to generate targets every 25 seconds (or 250 msec)
-        TARGET = pygame.USEREVENT + 1
+        #TARGET = pygame.USEREVENT + 1
         
+        # prepopulates upto the maximum number of targets prior
         targets = self.prepopoulate()
 
         #SENSOR_METHOD = pygame.USEREVENT + 2
@@ -304,8 +305,8 @@ class Environment:
         # setting the seed
         random.seed(42) 
         np.random.seed(42)
-        if self.auto_gen:
-            pygame.time.set_timer(TARGET, 1500)
+        #if self.auto_gen:
+            #pygame.time.set_timer(TARGET, 1500)
 
         while self.running:
 
@@ -322,16 +323,21 @@ class Environment:
             if len(self.tracked) >= test_limit:
                 self.running = False
 
+            if self.auto_gen:
+                if len(targets) < self.max_target:
+                        new_target = self.gen_target()
+                        targets.append(new_target)
+
             for event in pygame.event.get():
                 # pygame.QUIT event means the user clicked X to close your window
                 if event.type == pygame.QUIT:
                     self.running = False
 
                 # event to generate one target every 25s
-                if event.type == TARGET:
-                    if len(targets) < self.max_target:
-                        new_target = self.gen_target()
-                        targets.append(new_target)
+                #if event.type == TARGET:
+                    #if len(targets) < self.max_target:
+                        #new_target = self.gen_target()
+                        #targets.append(new_target)
 
                 #if event.type == SENSOR_METHOD:
                     #if sensor_method == 'intializing':
@@ -425,7 +431,7 @@ class Environment:
         pygame.quit()
         print('Total number of active targets: ', len(targets))
         print('Total length of this episode: ', len(self.tracked))
-        return region_map, targets
+        return region_map, targets, sensors
 
     
     
