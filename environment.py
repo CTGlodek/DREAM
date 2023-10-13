@@ -272,7 +272,10 @@ class Environment:
         #SENSOR_METHOD = pygame.USEREVENT + 2
 
         #pygame.time.set_timer(SENSOR_METHOD, 150000)
-
+        
+        # setting the seed
+        random.seed(42) 
+        np.random.seed(42)
         if self.auto_gen:
             pygame.time.set_timer(TARGET, 1500)
 
