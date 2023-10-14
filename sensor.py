@@ -210,7 +210,11 @@ class Sensor:
                 # calculate the reward with discounted future reward and update the qtable
                 self.agent.a[idx] = len(self.detected) + self.agent.gamma * np.max(self.agent.a_prime)
 
-            self.agent.model.fit(np.expand_dims(self.agent.s, axis=0), np.expand_dims(self.agent.a, axis=0), verbose=0)
+            loss = self.agent.model.fit(np.expand_dims(self.agent.s, axis=0), np.expand_dims(self.agent.a, axis=0), verbose=0)
+            
+            self.agent.loss_history.append(loss.history['loss'])
+
+            #print(loss.history['loss'])
 
             self.agent.a = self.agent.a_prime
 

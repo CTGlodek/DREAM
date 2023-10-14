@@ -3,7 +3,7 @@ import numpy as np
 import random
 
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Conv2D, MaxPool2D, Flatten, Activation
+from tensorflow.keras.layers import Dense, Conv2D, MaxPool2D, Flatten
 
 class Agent:
     def __init__(self,
@@ -21,6 +21,7 @@ class Agent:
         self.epsilon = 1                        # initial epsilon value
         self.min_eps = 0.05                     # lowest value for epsilon
         self.eps_decay = 0.0001                 # decay rate for the epsilon value
+        self.loss_history = []                  # capture the loss history from each fit
 
     def dqn(self):
         #learning_rate = 0.001
