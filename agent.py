@@ -17,6 +17,7 @@ class Agent:
         self.a = np.zeros(action_space)         # action taken from previous state
         self.s_prime = np.zeros(state_space)    # state after action (current)
         self.a_prime = None
+        self.alpha = 0.01                       # alpha - learning rate
         self.gamma = .3                         # gamma is the discount on future rewards
         self.epsilon = 1                        # initial epsilon value
         self.min_eps = 0.05                     # lowest value for epsilon

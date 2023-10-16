@@ -200,19 +200,28 @@ class Sensor:
             self.agent.a_prime = self.agent.model.predict(np.expand_dims(self.agent.s_prime, axis=0))[0]
             
             # calculate the reward (without discount) and update the qtable
+
+            # location of the best action
             idx = np.argmax(self.agent.a)
+
+            # current Q(s|a) value
+            current_val = np.max(self.agent.a)
             #self.agent.a[idx] = len(self.detected) # update to averaged sum 
 
             if self.mode == 'idle':
-                self.agent.a[idx] = -1 + self.agent.gamma * np.max(self.agent.a_prime)
-            
+                #self.agent.a[idx] = current_val + self.agent.alpha * (-1 + self.agent.gamma * np.max(self.agent.a_prime) - current_val)
+                reward = -1
             if self.mode == 'active':
                 # calculate the reward with discounted future reward and update the qtable
-                self.agent.a[idx] = len(self.detected) + self.agent.gamma * np.max(self.agent.a_prime)
+                #self.agent.a[idx] = current_val + self.agent.alpha * (len(self.detected) + self.agent.gamma * np.max(self.agent.a_prime) - current_val)
+                reward = len(self.detected)
+
+            # bellman equation
+            self.agent.a[idx] = current_val + self.agent.alpha * (reward + self.agent.gamma * np.max(self.agent.a_prime) - current_val)         
 
             loss = self.agent.model.fit(np.expand_dims(self.agent.s, axis=0), np.expand_dims(self.agent.a, axis=0), verbose=0)
             
-            self.agent.loss_history.append(loss.history['loss'])
+            self.agent.loss_history.append(loss.history['loss'][0])
 
             #print(loss.history['loss'])
 
