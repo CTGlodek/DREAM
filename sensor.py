@@ -138,7 +138,13 @@ class Sensor:
 
         if method == 'intializing':
             self.mode = 'sleep'
-            
+        
+        if method == 'random':
+            move = random.randint(0,2)
+
+            if move == 0: self.angle += -5
+
+            elif move == 2: self.angle += 5
 
         if method == 'fixed':
             self.angle = self.angle
@@ -189,43 +195,43 @@ class Sensor:
             ##################################################
             #### it is fitting the data 
             ###################################################
-            
-            # update s with the state from which the action was chosen
-            self.agent.s = self.agent.s_prime
+            if self.agent:
+                # update s with the state from which the action was chosen
+                self.agent.s = self.agent.s_prime
 
-            # update s_prime to the post action
-            self.agent.s_prime = self.region_map
+                # update s_prime to the post action
+                self.agent.s_prime = self.region_map
 
-            # get future action prob
-            self.agent.a_prime = self.agent.model.predict(np.expand_dims(self.agent.s_prime, axis=0))[0]
-            
-            # calculate the reward (without discount) and update the qtable
+                # get future action prob
+                self.agent.a_prime = self.agent.model.predict(np.expand_dims(self.agent.s_prime, axis=0))[0]
+                
+                # calculate the reward (without discount) and update the qtable
 
-            # location of the best action
-            idx = np.argmax(self.agent.a)
+                # location of the best action
+                idx = np.argmax(self.agent.a)
 
-            # current Q(s|a) value
-            current_val = np.max(self.agent.a)
-            #self.agent.a[idx] = len(self.detected) # update to averaged sum 
+                # current Q(s|a) value
+                current_val = np.max(self.agent.a)
+                #self.agent.a[idx] = len(self.detected) # update to averaged sum 
 
-            if self.mode == 'idle':
-                #self.agent.a[idx] = current_val + self.agent.alpha * (-1 + self.agent.gamma * np.max(self.agent.a_prime) - current_val)
-                reward = -1
-            if self.mode == 'active':
-                # calculate the reward with discounted future reward and update the qtable
-                #self.agent.a[idx] = current_val + self.agent.alpha * (len(self.detected) + self.agent.gamma * np.max(self.agent.a_prime) - current_val)
-                reward = len(self.detected)
+                if self.mode == 'idle':
+                    #self.agent.a[idx] = current_val + self.agent.alpha * (-1 + self.agent.gamma * np.max(self.agent.a_prime) - current_val)
+                    reward = -1
+                if self.mode == 'active':
+                    # calculate the reward with discounted future reward and update the qtable
+                    #self.agent.a[idx] = current_val + self.agent.alpha * (len(self.detected) + self.agent.gamma * np.max(self.agent.a_prime) - current_val)
+                    reward = len(self.detected)
 
-            # bellman equation
-            self.agent.a[idx] = current_val + self.agent.alpha * (reward + self.agent.gamma * np.max(self.agent.a_prime) - current_val)         
+                # bellman equation
+                self.agent.a[idx] = current_val + self.agent.alpha * (reward + self.agent.gamma * np.max(self.agent.a_prime) - current_val)         
 
-            loss = self.agent.model.fit(np.expand_dims(self.agent.s, axis=0), np.expand_dims(self.agent.a, axis=0), verbose=0)
-            
-            self.agent.loss_history.append(loss.history['loss'][0])
+                loss = self.agent.model.fit(np.expand_dims(self.agent.s, axis=0), np.expand_dims(self.agent.a, axis=0), verbose=0)
+                
+                self.agent.loss_history.append(loss.history['loss'][0])
 
-            #print(loss.history['loss'])
+                #print(loss.history['loss'])
 
-            self.agent.a = self.agent.a_prime
+                self.agent.a = self.agent.a_prime
 
             ###################################################
             if len(self.detected) == 0:

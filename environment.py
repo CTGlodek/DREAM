@@ -41,7 +41,9 @@ class Environment:
         self.auto_gen = False               # boolean flag for automatic target generation
         self.sensor_range = 100             # the sensing range for each sensor
         self.max_target = 100               # maximum number of targets at a time
-        self.fed_freq = 25                  # how often the federated update will occur - default 25
+        self.rl = False                     # agent flag
+        self.fed_flag = False
+        self.fed_freq = 25                # how often the federated update will occur - default 25
 
     def create_env(self, 
                    num_o_targets, 
@@ -112,8 +114,32 @@ class Environment:
         # Generate sensors based on user defined list
         for sensor in sensor_info:
             # temporarily fixing dqn as the agent type
-            temp_sensor = Sensor(sensor[0],sensor[1],fov=sensor[2], coverage_range=self.sensor_range, agent_type=Agent((self.sensor_range*2,self.sensor_range*2),(3)))
+            if sensor[3] == True:
+            
+                temp_sensor = Sensor(sensor[0],sensor[1],
+                                    fov=sensor[2], 
+                                    coverage_range=self.sensor_range, 
+                                    agent_type=Agent((self.sensor_range*2,self.sensor_range*2),(3)))
+            
+                temp_sensor.agent.dqn()
+                self.rl_flag = True
+
+            elif sensor[3] == False:
+                temp_sensor = Sensor(sensor[0],sensor[1],
+                                    fov=sensor[2], 
+                                    coverage_range=self.sensor_range, 
+                                    agent_type=None)
+                self.rl_flag = False
+            """
+            #works
+            temp_sensor = Sensor(sensor[0],sensor[1],
+                                    fov=sensor[2], 
+                                    coverage_range=self.sensor_range, 
+                                    agent_type=Agent((self.sensor_range*2,self.sensor_range*2),(3)))
+            
             temp_sensor.agent.dqn()
+            """
+
             sensors.append(temp_sensor)
             self.energy_total = self.energy_total + temp_sensor.energy_start
 
@@ -254,7 +280,7 @@ class Environment:
         return track_temp, energy_temp, unique_tracked, num_unique_tracked, total_targets
     
 
-    def run_env(self, targets, sensors, buildings, explore, train, test):
+    def run_env(self, targets, sensors, buildings,fed, explore, train, test):
         
         """
         The main function for running the simulation.
@@ -274,6 +300,9 @@ class Environment:
         self.running = True
         self.clock = pygame.time.Clock()
         global_time = 0
+
+        if fed == True:
+            self.fed_flag = True
 
         # the amount of training without visuals
         explore_limit = explore
@@ -310,15 +339,24 @@ class Environment:
 
         while self.running:
 
+            if self.rl_flag:
                 # poll for events
-            if len(self.tracked) > explore_limit:
-                pygame.display.set_caption("2D Environment: DQN Directed - Training")
-                sensor_method = 'directed'
+                if len(self.tracked) > explore_limit:
+                    pygame.display.set_caption("2D Environment: DQN Directed - Training")
+                    sensor_method = 'directed'
 
-            # fill the screen with a color to wipe away anything from last frame
-            if len(self.tracked) > train_limit:
+            # Override Sensor Method if needed
+            #sensor_method = 'random'
+
+                # fill the screen with a color to wipe away anything from last frame
+                if len(self.tracked) > train_limit:
+                    self.screen.fill("purple")
+                    pygame.display.set_caption("2D Environment: DQN Directed - Testing")
+
+            elif self.rl_flag == False:
                 self.screen.fill("purple")
-                pygame.display.set_caption("2D Environment: DQN Directed - Testing")
+                pygame.display.set_caption("2D Environment: Random")
+                sensor_method = 'random'
 
             if len(self.tracked) >= test_limit:
                 self.running = False
@@ -362,7 +400,7 @@ class Environment:
                     pygame.draw.rect(self.screen, (0,0,255), building, 0)
 
             # trigger federated learning 
-            if len(self.tracked) % self.fed_freq == 0:
+            if len(self.tracked) % self.fed_freq == 0 and self.fed_flag:
                 weights = []
                 for sensor in sensors:
                     w_temp = sensor.agent.grab_weights()

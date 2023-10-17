@@ -41,6 +41,7 @@ class Agent:
                       metrics=['MSE'])
         
         self.model = model
+        print('dqn initialized')
     
     def next_move(self, episode):
         
