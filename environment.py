@@ -3,6 +3,8 @@ import pygame
 import numpy as np
 import matplotlib.pyplot as plt
 
+import tensorflow as tf
+
 import random
 
 import config
@@ -280,7 +282,7 @@ class Environment:
         return track_temp, energy_temp, unique_tracked, num_unique_tracked, total_targets
     
 
-    def run_env(self, targets, sensors, buildings,fed, explore, train, test):
+    def run_env(self, targets, sensors, buildings,fed, explore, train, test, episode = 0, reload = None):
         
         """
         The main function for running the simulation.
@@ -304,6 +306,8 @@ class Environment:
         if fed == True:
             self.fed_flag = True
 
+        episode = episode
+
         # the amount of training without visuals
         explore_limit = explore
         train_limit = train
@@ -311,7 +315,7 @@ class Environment:
 
         # initalizing the font
         font = pygame.font.Font('freesansbold.ttf', 32)
-        time_step_text = 'Time Step: ' + str(len(self.tracked))
+        time_step_text = 'Time Step: ' + str(episode) # used to be len(self.tracked) allows for additional training 
         text = font.render(time_step_text, True, (0, 255, 0), (0, 0, 128)) # green , blue
         # create a rectangular object for the text surface object
         textRect = text.get_rect()
@@ -320,6 +324,11 @@ class Environment:
 
         # Allow for inital training
         sensor_method = 'explore'
+
+        if not reload == None:
+            for sensor in sensors:
+                sensor.agent.model = tf.keras.models.load_model(reload)
+                print('Saved Model loaded successfully')
 
         # custom event to generate targets every 25 seconds (or 250 msec)
         #TARGET = pygame.USEREVENT + 1
@@ -349,7 +358,7 @@ class Environment:
             #sensor_method = 'random'
 
                 # fill the screen with a color to wipe away anything from last frame
-                if len(self.tracked) > train_limit:
+                if episode > train_limit:
                     self.screen.fill("purple")
                     pygame.display.set_caption("2D Environment: DQN Directed - Testing")
 
@@ -358,7 +367,7 @@ class Environment:
                 pygame.display.set_caption("2D Environment: Random")
                 sensor_method = 'random'
 
-            if len(self.tracked) >= test_limit:
+            if episode >= test_limit:
                 self.running = False
 
             if self.auto_gen:
@@ -392,15 +401,15 @@ class Environment:
 
             covered_targets = []
             current_energy = 0 # initialize available energy for this moment
-            episode = len(self.tracked)
+            episode += 1 
 
             # basic 'buildings' - helps to see the lanes
-            if len(self.tracked) > train_limit:
+            if episode > train_limit:
                 for building in buildings:
                     pygame.draw.rect(self.screen, (0,0,255), building, 0)
 
             # trigger federated learning 
-            if len(self.tracked) % self.fed_freq == 0 and self.fed_flag:
+            if episode % self.fed_freq == 0 and self.fed_flag:
                 weights = []
                 for sensor in sensors:
                     w_temp = sensor.agent.grab_weights()
@@ -414,7 +423,7 @@ class Environment:
             for target in targets:
                 target.move()
                 target.turn(self)
-                if len(self.tracked) > train_limit:
+                if episode > train_limit:
                     target.draw_target(self.screen)  
                 self.delete_target(target, targets)
 
@@ -429,7 +438,7 @@ class Environment:
                     for var in sensor.detected:
                         covered_targets.append(var.id)
 
-                if len(self.tracked) > train_limit:
+                if episode > train_limit:
                     sensor.draw_sensors(self.screen)
                     
             # appends all the targets, by id, (if any) that were tracked in this round
@@ -438,11 +447,11 @@ class Environment:
             # appends the total available energy in this moment
             self.energy.append(current_energy)
             
-            time_step_text = 'Time Step: ' + str(len(self.tracked))
+            time_step_text = 'Time Step: ' + str(episode)
             text = font.render(time_step_text, True, (0, 255, 0), (0, 0, 128)) # green , blue
             self.screen.blit(text, textRect)
 
-            if len(self.tracked) > train_limit:
+            if episode > train_limit:
                 
                 if config.colab:
                     # colab
@@ -468,7 +477,7 @@ class Environment:
                 print('The game time is: ', global_time)
         pygame.quit()
         print('Total number of active targets: ', len(targets))
-        print('Total length of this episode: ', len(self.tracked))
+        print('Total length of this episode: ', episode)
         return region_map, targets, sensors
 
     

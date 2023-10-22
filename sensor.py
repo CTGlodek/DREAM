@@ -16,7 +16,7 @@ class Sensor:
                  coverage_range=100,
                  comm_range=100,
                  fov=90,
-                 energy=10000,
+                 energy=15000,
                  speed = 2, # not used currently
                  mode='idle',
                  agent_type = None):

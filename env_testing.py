@@ -10,7 +10,8 @@ env_test = Environment((1200, 800))
 #env_test = Environment((800, 600))
 #env_test = Environment((600, 400))
 
-rl_agent = False
+rl_agent = True
+federated_learning = True
 
 #target_list = env_test.generate_target_list(10) # generate a batch of targets
 
@@ -24,14 +25,18 @@ target_1, sensor_1, buildings =env_test.create_env(0, # number of targets
                                                    1, # number of vertical lanes
                                                    1) # number of horizontal lanes
 
+reload = None # 'model_0.keras'
+
 # run the simulation
 env_test.run_env(target_1, 
                  sensor_1, 
                  buildings, 
-                 fed = False,
-                 explore = 50, # length of time the agents will freely explore
-                 train = 1,  # length of time the agents will train with decaying epsilon
-                 test = 500)   # length of time the agents will tested
+                 fed = federated_learning,   # federated learning flag
+                 explore = 50,  # length of time the agents will freely explore
+                 train = 1,     # length of time the agents will train with decaying epsilon
+                 test = 26000,
+                 episode = 25000,
+                 reload = reload)    # length of time the agents will tested
 
 env_test.env_stats()
 
