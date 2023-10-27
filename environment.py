@@ -27,11 +27,13 @@ if config.colab:
 
 class Environment:
     def __init__(self,
-                 screen_size):
+                 screen_size,
+                 show = True):
         self.screen_size= screen_size       # establish the screen size
         self.running = False                # running flag
-        self.clock = pygame.time.Clock()    # initalize a pygame clock object
-        self.screen = pygame.display.set_mode((self.screen_size))   # initialize the screen object
+        if show:
+            self.clock = pygame.time.Clock()    # initalize a pygame clock object
+            self.screen = pygame.display.set_mode((self.screen_size))   # initialize the screen object
         self.tracked = []                   # a list of lists of the targets that have been tracked by time step
         self.energy = []                    # a list of available energy per time step
         self.energy_total = 0               # initial starting energy
@@ -76,8 +78,10 @@ class Environment:
         sensors = []
         buildings = []
         
-        self.building_width = int((self.screen.get_width() - (self.vert_lanes * self.lane_width)) / (self.vert_lanes+1))
-        self.building_height = int((self.screen.get_height() - (self.hort_lanes * self.lane_width)) / (self.hort_lanes + 1))
+        #self.building_width = int((self.screen.get_width() - (self.vert_lanes * self.lane_width)) / (self.vert_lanes+1))# working
+        self.building_width = int((self.screen_size[0] - (self.vert_lanes * self.lane_width)) / (self.vert_lanes+1))
+        #self.building_height = int((self.screen.get_height() - (self.hort_lanes * self.lane_width)) / (self.hort_lanes + 1)) # working
+        self.building_height = int((self.screen_size[1] - (self.hort_lanes * self.lane_width)) / (self.hort_lanes + 1))
 
         
 
@@ -188,11 +192,11 @@ class Environment:
             target = (0 , random.choice(hor_start) + lane_offset, temp_dir, self.target_count )
 
         if temp_dir == 'left':
-            target = (self.screen.get_width() , random.choice(hor_start) - lane_offset, temp_dir, self.target_count)
-        
+            #target = (self.screen.get_width() , random.choice(hor_start) - lane_offset, temp_dir, self.target_count) # working
+            target = (self.screen_size[0] , random.choice(hor_start) - lane_offset, temp_dir, self.target_count)
         if temp_dir == 'up':
-            target = (random.choice(vert_start) + lane_offset, self.screen.get_height(), temp_dir, self.target_count)
-        
+            #target = (random.choice(vert_start) + lane_offset, self.screen.get_height(), temp_dir, self.target_count)#working
+            target = (random.choice(vert_start) + lane_offset, self.screen_size[1], temp_dir, self.target_count)
         if temp_dir == 'down':
             target = (random.choice(vert_start) - lane_offset, 0, temp_dir, self.target_count )
 
@@ -205,8 +209,10 @@ class Environment:
         for i in range(self.max_target):
             pp_target = self.gen_target()
 
-            rand_pos_h = random.randint(0, self.screen.get_height())
-            rand_pos_w = random.randint(0, self.screen.get_width())
+            #rand_pos_h = random.randint(0, self.screen.get_height()) # working
+            #rand_pos_w = random.randint(0, self.screen.get_width()) # working
+            rand_pos_h = random.randint(0, self.screen_size[1])
+            rand_pos_w = random.randint(0, self.screen_size[0])
 
             if pp_target.direction == 'right':
                 pp_target.position.x += rand_pos_w
@@ -236,7 +242,7 @@ class Environment:
         targets (list):     the list of targets
 
         """
-        if target.position.x > (self.screen.get_width() + 50) or target.position.x < -25 or target.position.y > (self.screen.get_height()+50) or target.position.y < -25: 
+        if target.position.x > (self.screen_size[0] + 50) or target.position.x < -25 or target.position.y > (self.screen_size[1] + 50) or target.position.y < -25: 
             #print(target.position.x)
             #print(target.position.y)
             targets.remove(target)
@@ -480,5 +486,111 @@ class Environment:
         print('Total length of this episode: ', episode)
         return region_map, targets, sensors
 
+    def run_env_test(self, targets, sensors, buildings,fed, explore, train, test, episode = 0, reload = None):
+            
+            """
+            The main function for running the simulation.
+
+            Variables:
+                targets (list): a list of target objects
+                sensors (list): a list of sensor objects
+                buildings(list): a list of buildings - specifically the location for each to be drawn
+            
+            Returns:
+                region_map (2d numpy array): returns the last region map for the last sensor to allow for testing - this will be removed later
+            """
+            
+            self.running = True
+
+            if fed == True:
+                self.fed_flag = True
+
+            episode = episode
+
+            # the amount of training without visuals
+            explore_limit = explore
+            train_limit = train
+            test_limit = test
+
+            # Allow for inital training
+            sensor_method = 'explore'
+
+            if not reload == None:
+                for sensor in sensors:
+                    sensor.agent.model = tf.keras.models.load_model(reload)
+                    print('Saved Model loaded successfully')
+            
+            # prepopulates upto the maximum number of targets prior
+            targets = self.prepopoulate()
+            
+            # setting the seed
+            random.seed(42) 
+            np.random.seed(42)
+
+            while self.running:
+
+                if self.rl_flag:
+                    # poll for events
+                    if len(self.tracked) > explore_limit:
+                        sensor_method = 'directed'
+
+                # Override Sensor Method if needed
+                #sensor_method = 'random'
+
+                elif self.rl_flag == False:
+                    sensor_method = 'random'
+
+                if episode >= test_limit:
+                    self.running = False
+
+                if self.auto_gen:
+                    if len(targets) < self.max_target:
+                            new_target = self.gen_target()
+                            targets.append(new_target)
+                
+                covered_targets = []
+                current_energy = 0 # initialize available energy for this moment
+                episode += 1 
+
+                # trigger federated learning 
+                if episode % self.fed_freq == 0 and self.fed_flag:
+                    weights = []
+                    for sensor in sensors:
+                        w_temp = sensor.agent.grab_weights()
+                        weights.append(w_temp)
+
+                    w_avg = avg_weights(weights)
+
+                    for sensor in sensors:
+                        sensor.agent.update_weights(w_avg)
+
+                for target in targets:
+                    target.move()
+                    target.turn(self)
+                    self.delete_target(target, targets)
+
+                for sensor in sensors:
+                    region_map = sensor.update_sensor_fov(targets, episode, method=sensor_method)
+                    #print(type(sensor.agent.model))
+                    sensor.update_energy()
+                    
+                    current_energy = current_energy + sensor.energy # tallies the energy
+
+                    if len(sensor.detected) > 0: 
+                        for var in sensor.detected:
+                            covered_targets.append(var.id)
+                        
+                # appends all the targets, by id, (if any) that were tracked in this round
+                self.tracked.append(covered_targets)
+
+                # appends the total available energy in this moment
+                self.energy.append(current_energy)
+                
+                if episode % 100 == 0:
+                    print('Time Step: ', episode)
+
+            print('Total number of active targets: ', len(targets))
+            print('Total length of this episode: ', episode)
+            return region_map, targets, sensors
     
     
