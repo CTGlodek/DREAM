@@ -203,7 +203,7 @@ class Sensor:
                 self.agent.s_prime = self.region_map
 
                 # get future action prob
-                self.agent.a_prime = self.agent.model.predict(np.expand_dims(self.agent.s_prime, axis=0))[0]
+                self.agent.a_prime = self.agent.model.predict(np.expand_dims(self.agent.s_prime, axis=0), verbose=0)[0]
                 
                 # calculate the reward (without discount) and update the qtable
 
