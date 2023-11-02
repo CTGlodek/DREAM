@@ -288,7 +288,7 @@ class Environment:
         return track_temp, energy_temp, unique_tracked, num_unique_tracked, total_targets
     
 
-    def run_env(self, targets, sensors, buildings,fed, explore, train, test, episode = 0, reload = None):
+    def run_env(self, targets, sensors, buildings,fed, explore, train, test, episode = 0, reload = None, show = True):
         
         """
         The main function for running the simulation.
@@ -301,17 +301,6 @@ class Environment:
         Returns:
             region_map (2d numpy array): returns the last region map for the last sensor to allow for testing - this will be removed later
         """
-
-        # pygame setup
-        pygame.init()
-        pygame.display.set_caption("2D Environment: Exploring")
-        self.running = True
-        self.clock = pygame.time.Clock()
-        global_time = 0
-
-        if fed == True:
-            self.fed_flag = True
-
         episode = episode
 
         # the amount of training without visuals
@@ -319,59 +308,62 @@ class Environment:
         train_limit = train
         test_limit = test
 
-        # initalizing the font
-        font = pygame.font.Font('freesansbold.ttf', 32)
-        time_step_text = 'Time Step: ' + str(episode) # used to be len(self.tracked) allows for additional training 
-        text = font.render(time_step_text, True, (0, 255, 0), (0, 0, 128)) # green , blue
-        # create a rectangular object for the text surface object
-        textRect = text.get_rect()
-        # set the center of the rectangular object.
-        textRect.center = (150, 50)
+        if show:
+            # pygame setup
+            pygame.init()
+            pygame.display.set_caption("2D Environment: Exploring")
+            
+            self.clock = pygame.time.Clock()
+            global_time = 0
+
+            # initalizing the font
+            font = pygame.font.Font('freesansbold.ttf', 32)
+            time_step_text = 'Time Step: ' + str(episode) # used to be len(self.tracked) allows for additional training 
+            text = font.render(time_step_text, True, (0, 255, 0), (0, 0, 128)) # green , blue
+            # create a rectangular object for the text surface object
+            textRect = text.get_rect()
+            # set the center of the rectangular object.
+            textRect.center = (150, 50)
+        
+        self.running = True
+        
+        if fed == True:
+            self.fed_flag = True
 
         # Allow for inital training
         sensor_method = 'explore'
 
         if not reload == None:
-            for sensor in sensors:
-                sensor.agent.model = tf.keras.models.load_model(reload)
+            for i, sensor in enumerate(sensors):
+                sensor.agent.model = tf.keras.models.load_model(reload[0])
                 print('Saved Model loaded successfully')
-
-        # custom event to generate targets every 25 seconds (or 250 msec)
-        #TARGET = pygame.USEREVENT + 1
         
         # prepopulates upto the maximum number of targets prior
         targets = self.prepopoulate()
-
-        #SENSOR_METHOD = pygame.USEREVENT + 2
-
-        #pygame.time.set_timer(SENSOR_METHOD, 150000)
         
         # setting the seed
         random.seed(42) 
         np.random.seed(42)
-        #if self.auto_gen:
-            #pygame.time.set_timer(TARGET, 1500)
 
         while self.running:
 
             if self.rl_flag:
                 # poll for events
                 if len(self.tracked) > explore_limit:
-                    pygame.display.set_caption("2D Environment: DQN Directed - Training")
                     sensor_method = 'directed'
-
-            # Override Sensor Method if needed
-            #sensor_method = 'random'
+                    if show:
+                        pygame.display.set_caption("2D Environment: DQN Directed - Training")
 
                 # fill the screen with a color to wipe away anything from last frame
-                if episode > train_limit:
+                if episode > train_limit and show:
                     self.screen.fill("purple")
                     pygame.display.set_caption("2D Environment: DQN Directed - Testing")
 
             elif self.rl_flag == False:
-                self.screen.fill("purple")
-                pygame.display.set_caption("2D Environment: Random")
                 sensor_method = 'random'
+                if show:
+                    self.screen.fill("purple")
+                    pygame.display.set_caption("2D Environment: Random")
 
             if episode >= test_limit:
                 self.running = False
@@ -381,36 +373,18 @@ class Environment:
                         new_target = self.gen_target()
                         targets.append(new_target)
 
-            for event in pygame.event.get():
-                # pygame.QUIT event means the user clicked X to close your window
-                if event.type == pygame.QUIT:
-                    self.running = False
-
-                # event to generate one target every 25s
-                #if event.type == TARGET:
-                    #if len(targets) < self.max_target:
-                        #new_target = self.gen_target()
-                        #targets.append(new_target)
-
-                #if event.type == SENSOR_METHOD:
-                    #if sensor_method == 'intializing':
-                        #sensor_method = 'explore'
-
-                    #elif sensor_method == 'explore':
-                        #sensor_method = 'directed'
-
-                    #if sensor_method == 'directed':
-                        #pygame.display.set_caption("2D Environment: DQN Directed")
-            
-
-
+            if show: 
+                for event in pygame.event.get():
+                    # pygame.QUIT event means the user clicked X to close your window
+                    if event.type == pygame.QUIT:
+                        self.running = False
 
             covered_targets = []
             current_energy = 0 # initialize available energy for this moment
             episode += 1 
 
             # basic 'buildings' - helps to see the lanes
-            if episode > train_limit:
+            if episode > train_limit and show:
                 for building in buildings:
                     pygame.draw.rect(self.screen, (0,0,255), building, 0)
 
@@ -429,7 +403,7 @@ class Environment:
             for target in targets:
                 target.move()
                 target.turn(self)
-                if episode > train_limit:
+                if episode > train_limit and show:
                     target.draw_target(self.screen)  
                 self.delete_target(target, targets)
 
@@ -444,7 +418,7 @@ class Environment:
                     for var in sensor.detected:
                         covered_targets.append(var.id)
 
-                if episode > train_limit:
+                if episode > train_limit and show:
                     sensor.draw_sensors(self.screen)
                     
             # appends all the targets, by id, (if any) that were tracked in this round
@@ -453,11 +427,14 @@ class Environment:
             # appends the total available energy in this moment
             self.energy.append(current_energy)
             
-            time_step_text = 'Time Step: ' + str(episode)
-            text = font.render(time_step_text, True, (0, 255, 0), (0, 0, 128)) # green , blue
-            self.screen.blit(text, textRect)
+            if show:
+                time_step_text = 'Time Step: ' + str(episode)
+                text = font.render(time_step_text, True, (0, 255, 0), (0, 0, 128)) # green , blue
+                self.screen.blit(text, textRect)
+            elif episode % 100 == 0:
+                print('Time Step: ', episode)
 
-            if episode > train_limit:
+            if episode > train_limit and show:
                 
                 if config.colab:
                     # colab
@@ -473,15 +450,14 @@ class Environment:
                     pygame.display.flip()
                     pygame.display.update()
 
-            # limits FPS to 60
-            # dt is delta time in seconds since last frame, used for framerate-
-            # independent physics.
-            dt = self.clock.tick(60) / 1000
-            global_time += dt
+            if show:
+                dt = self.clock.tick(60) / 1000
+                global_time += dt
 
-            if global_time % 25 == 0:
-                print('The game time is: ', global_time)
-        pygame.quit()
+                if global_time % 25 == 0:
+                    print('The game time is: ', global_time)
+        if show:        
+            pygame.quit()
         print('Total number of active targets: ', len(targets))
         print('Total length of this episode: ', episode)
         return region_map, targets, sensors

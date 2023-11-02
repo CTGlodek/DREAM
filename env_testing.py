@@ -7,7 +7,9 @@ from data_analysis import *
 # env_testing.py 
 # version 0.2 : initial development 
 
-env_test = Environment((1200, 800), show = False)
+show_vis = False
+
+env_test = Environment((1200, 800), show = show_vis)
 #env_test = Environment((800, 600))
 #env_test = Environment((600, 400))
 
@@ -45,7 +47,8 @@ if visualize:
                                                         train = 1,     # length of time the agents will train with decaying epsilon
                                                         test = episode_end,
                                                         episode = episode_start,
-                                                        reload = reload)    # length of time the agents will tested
+                                                        reload = reload,
+                                                        show = show_vis)    # length of time the agents will tested
 
 else:
     # run the simulation # started at 11:04
