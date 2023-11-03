@@ -360,7 +360,8 @@ class Environment:
                     pygame.display.set_caption("2D Environment: DQN Directed - Testing")
 
             elif self.rl_flag == False:
-                sensor_method = 'random'
+                #sensor_method = 'random'
+                sensor_method = None
                 if show:
                     self.screen.fill("purple")
                     pygame.display.set_caption("2D Environment: Random")

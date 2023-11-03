@@ -134,7 +134,19 @@ class Sensor:
         if method == None:
             # updates the angle if detected is not empty
             if len(self.detected) > 0: 
-                self.angle = math.degrees(math.atan2(self.detected[0].position.y - self.position.y, self.detected[0].position.x - self.position.x)) % 360 
+                #self.angle = math.degrees(math.atan2(self.detected[0].position.y - self.position.y, self.detected[0].position.x - self.position.x)) % 360 
+                diff = math.degrees(math.atan2(self.detected[0].position.y - self.position.y, self.detected[0].position.x - self.position.x)) % 360
+
+                if (self.angle - diff) > 0:
+                    self.angle = self.angle - 5
+                elif (self.angle - diff) < 0:
+                    self.angle = self.angle + 5
+            else:
+                move = random.randint(0,2)
+
+                if move == 0: self.angle += -5
+
+                elif move == 2: self.angle += 5
 
         if method == 'intializing':
             self.mode = 'sleep'

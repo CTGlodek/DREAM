@@ -7,19 +7,19 @@ from data_analysis import *
 # env_testing.py 
 # version 0.2 : initial development 
 
-show_vis = False
+show_vis = True
 
 env_test = Environment((1200, 800), show = show_vis)
 #env_test = Environment((800, 600))
 #env_test = Environment((600, 400))
 
-rl_agent = True
-federated_learning = True
+rl_agent = False
+federated_learning = False
 
 saving = False
 
 episode_start = 0
-episode_end = 200
+episode_end = 2000
 
 #target_list = env_test.generate_target_list(10) # generate a batch of targets
 
@@ -35,7 +35,7 @@ target_1, sensor_1, buildings =env_test.create_env(0, # number of targets
 
 reload = None
 #reload = 'test_model_0_0k_1000k.keras'
-visualize = False
+visualize = True
 # run the simulation
 
 if visualize:
